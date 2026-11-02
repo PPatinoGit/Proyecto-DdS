@@ -1,0 +1,11 @@
+{
+  "users": [
+    {
+      "id": "admin-1",
+      "email": "admin@demo.com",
+      "name": "Administrador Demo",
+      "role": "admin",
+      "passwordHash": "scrypt$8e81321e46a1221377dfe49174662df1$39720f25b3110c61279d10eba3df56034be032850b894366400a03c7947897bcd1e8fdeea0b5c7a82c0853490960eccccd093d95c54c3b1f827a36b8f3f43c0e"
+    }
+  ]
+}

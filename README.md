@@ -140,6 +140,7 @@ Proyecto DdS/
 ├── index.html
 ├── package.json
 ├── tsconfig.json
+├── tsconfig.server.json          # tipos de Node para api/ y src/lib (servidor)
 ├── vite.config.ts
 └── README.md
 ```
@@ -247,6 +248,10 @@ node scripts/init-db.mjs    # aplica db/schema.sql
 
 ### Credenciales de prueba
 
+| Correo | Contraseña |
+| --- | --- |
+| `admin@demo.com` | `demo1234` |
+
 Generar el hash de una contraseña para `data/users.json`:
 
 ```bash
@@ -268,6 +273,15 @@ vercel
 
 Crea la base en Turso, copia su URL y token como variables de entorno en Vercel y el mismo
 código funciona sin cambios.
+
+---
+
+## Convenciones
+
+- **Ramas:** `main` estable; el trabajo va en `feat/...` o `fix/...`.
+- **Commits:** en inglés, modo imperativo (`add csv voter import`).
+- **Base de datos:** migraciones versionadas en `db/migrations/`; sin cambios manuales.
+- **IA:** documentar qué se generó, qué se modificó y por qué (ver `docs/decisiones.md`).
 
 ---
 
