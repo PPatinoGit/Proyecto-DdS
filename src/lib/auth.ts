@@ -1,9 +1,8 @@
 // Hash of passwords and cookie signing
 import process from "node:process";
-import { createHmac, randomBytes, srcyptSync, timingSafeEqual } from "node:crypto"; // signs cookies, generates salts, derives password hashes, and compares hashes in a timing-safe way.
-import { parse, serialize } from "cookie"; // cookies reading and Set-Cookie header generation
-import { scryptSync } from "node:crypto";
 import { Buffer } from "node:buffer";
+import { createHmac, randomBytes, scryptSync, timingSafeEqual } from "node:crypto"; // signs cookies, generates salts, derives password hashes, and compares hashes in a timing-safe way.
+import { parseCookie, stringifySetCookie } from "cookie"; // cookies reading and Set-Cookie header generation
 
 // Hash and sign the session payload 
 
@@ -61,7 +60,9 @@ export function createSessionCookie(userId: string): string {
   };
   const body = Buffer.from(JSON.stringify(payload)).toString("base64url");
 
-  return serialize(SESSION_COOKIE, `${body}.${sign(body)}`, {
+  return stringifySetCookie({
+    name: SESSION_COOKIE,
+    value: `${body}.${sign(body)}`,
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
@@ -71,7 +72,9 @@ export function createSessionCookie(userId: string): string {
 }
 
 export function clearSessionCookie(): string {
-  return serialize(SESSION_COOKIE, "", {
+  return stringifySetCookie({
+    name: SESSION_COOKIE,
+    value: "",
     httpOnly: true,
     sameSite: "lax",
     path: "/",
@@ -84,7 +87,7 @@ export function readSession(request: Request): SessionPayload | null {
   const header = request.headers.get("cookie");
   if (!header) return null;
 
-  const token = parse(header)[SESSION_COOKIE];
+  const token = parseCookie(header)[SESSION_COOKIE];
   if (!token) return null;
 
   const [body, signature] = token.split(".");
