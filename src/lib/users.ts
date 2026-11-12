@@ -4,6 +4,8 @@ Administrators are stored on a JSON file versioned on the repo, thats why this m
 // The atribute 'with { type: "json" }' is required to import JSON files in TypeScript 
 import usersJson from "../../data/users.json" with { type: "json" };
 
+import type { PublicUser } from "./types";
+
 export type AdminUser = {
   id: string;
   email: string;
@@ -25,11 +27,8 @@ export function findUserById(id: string): AdminUser | null {
   return users.find((user) => user.id === id) ?? null;
 }
 
-/*
- Version of the user without the password hash.
- `Omit<T, K>` builds a new type by removing the key K.
- */
-export type PublicUser = Omit<AdminUser, "passwordHash">;
+/* Re-exported so server code can keep importing it from here. */
+export type { PublicUser };
 
 /*
  Converts an AdminUser into something safe to send to the browser.
