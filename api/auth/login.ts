@@ -20,12 +20,12 @@ function json(data: unknown, status: number, headers: Record<string, string> = {
   });
 }
 
-export default async function handler(request: Request): Promise<Response> {
-  /* POST only, anything else gets 405 */
-  if (request.method !== "POST") {
-    return json({ error: "method_not_allowed" }, 405, { allow: "POST" });
-  }
-
+/*
+ Exported as POST: Vercel routes by the export name, passes a Web `Request`
+ and sends the returned `Response`. Other methods never reach this code, so
+ the old manual 405 check is no longer needed.
+*/
+export async function POST(request: Request): Promise<Response> {
   /* body must be valid JSON */
   let body: unknown;
   try {

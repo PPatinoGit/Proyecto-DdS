@@ -80,13 +80,15 @@ delegarse a distintas personas de la organización.
 
 ## Estructura del proyecto
 
-> Estructura **completa prevista**. Implementado hasta ahora:
+> Estructura **completa prevista**; las carpetas vacías son bloques futuros. Implementado
+> hasta ahora:
 >
 > `data/users.json` · `db/schema.sql` · `scripts/hash-password.mjs` · `scripts/init-db.mjs` ·
-> `src/lib/auth.ts` · `src/lib/db.ts` · `src/lib/users.ts` ·
-> `api/auth/login.ts` · `api/auth/logout.ts` · `api/auth/me.ts`
->
-> El frontend sigue siendo el template de Vite: todavía no hay páginas propias.
+> `scripts/check-i18n.mjs` · `api/auth/login.ts` · `api/auth/logout.ts` · `api/auth/me.ts` ·
+> `src/lib/{auth,db,users,api,auth-api,types}.ts` · `src/hooks/useAuth.ts` ·
+> `src/components/auth/{AuthProvider,route-guards}` ·
+> `src/components/ui/{LanguageSwitcher,FullScreenLoader}` · `src/i18n/` · `src/pages/Login.tsx` ·
+> `src/pages/admin/AdminHome.tsx` · `src/App.tsx` · `src/main.tsx` · `vercel.json`
 
 ```
 Proyecto DdS/
@@ -116,31 +118,40 @@ Proyecto DdS/
 │   ├── decisiones.md             # decisiones técnicas y su justificación
 │   └── modelo-datos.md           # detalle del modelo de datos
 ├── scripts/
-│   └── hash-password.mjs         # genera hashes para data/users.json
+│   ├── check-i18n.mjs            # valida claves, valores y placeholders
+│   ├── hash-password.mjs         # genera hashes para data/users.json
+│   └── init-db.mjs               # aplica db/schema.sql
 ├── public/                       # assets estáticos
 ├── src/                          # frontend
 │   ├── components/
+│   │   ├── auth/                 # AuthProvider + guardias de ruta
 │   │   ├── layout/               # shell, navbar, footer
 │   │   ├── forms/                # inputs, validación
-│   │   └── ui/                   # botones, tablas, modales
+│   │   └── ui/                   # LanguageSwitcher, FullScreenLoader, botones, tablas
 │   ├── pages/
-│   │   ├── admin/                # portal de administración
+│   │   ├── admin/                # portal de administración (AdminHome)
 │   │   ├── vote/                 # flujo de votación
-│   │   └── questionnaire/        # cuestionarios y delegación
+│   │   ├── questionnaire/        # cuestionarios y delegación
+│   │   └── Login.tsx
 │   ├── i18n/
-│   │   ├── es.json
+│   │   ├── es.json               # fuente de verdad de las claves
 │   │   ├── en.json
-│   │   └── index.ts
+│   │   ├── ru.json
+│   │   ├── i18n-context.ts       # contexto + useI18n()
+│   │   ├── I18nProvider.tsx      # idioma actual y persistencia
+│   │   └── index.ts              # tipos, diccionarios y translate()
 │   ├── lib/
-│   │   ├── api.ts                # cliente HTTP
-│   │   ├── auth.ts               # sesión y permisos
+│   │   ├── api.ts                # cliente HTTP (ApiError)
+│   │   ├── auth.ts               # sesión y permisos (servidor)
+│   │   ├── auth-api.ts           # llamadas tipadas a /api/auth
 │   │   ├── db.ts                 # cliente libSQL (archivo local o Turso)
+│   │   ├── types.ts              # tipos compartidos cliente/servidor
 │   │   ├── users.ts              # lectura de data/users.json
 │   │   └── validation.ts         # esquemas Zod
 │   ├── hooks/
-│   ├── types/
-│   ├── App.tsx
-│   ├── main.tsx
+│   │   └── useAuth.ts            # contexto de sesión + hook
+│   ├── App.tsx                   # tabla de rutas
+│   ├── main.tsx                  # providers: i18n, router, sesión
 │   └── index.css
 ├── .env.example                  # variables de entorno (sin valores reales)
 ├── .gitignore
@@ -148,6 +159,7 @@ Proyecto DdS/
 ├── package.json
 ├── tsconfig.json
 ├── tsconfig.server.json          # tipos de Node para api/ y src/lib (servidor)
+├── vercel.json                   # rewrite de rutas del cliente a index.html
 ├── vite.config.ts
 └── README.md
 ```
@@ -193,12 +205,45 @@ Flujo:
 3. En cada petición el servidor **solo verifica la firma**: no consulta ninguna sesión.
 4. `logout` borra la cookie con `Max-Age=0`.
 
-Códigos de error: `invalid_json` (400), `invalid_input` (400), `invalid_credentials` (401),
-`method_not_allowed` (405).
+Códigos de error: `invalid_json` (400), `invalid_input` (400), `invalid_credentials` (401).
+Un método distinto del declarado lo rechaza Vercel antes de entrar al handler (`405`).
+
+> **Firma de las funciones:** cada archivo exporta el método HTTP que atiende
+> (`export function GET` / `export async function POST`). Con `export default`, Vercel
+> entrega los objetos `req`/`res` de Node y el código basado en `Request`/`Response`
+> falla (`request.headers.get is not a function`). Con exportaciones nombradas recibe un
+> `Request` web y el `Response` que se devuelve se envía tal cual, incluida la cabecera
+> `set-cookie`.
 
 > **Limitación conocida:** al no guardar sesiones en la base de datos, una sesión robada
 > no se puede revocar antes de expirar (2 horas). Es un intercambio asumido para la demo.
 > Si hiciera falta, habría que mover las sesiones a SQLite y consultarlas en cada petición.
+
+---
+
+## Internacionalización (es / en / ru)
+
+Sin librerías de i18n y sin APIs externas de traducción: los textos viven en el repositorio.
+
+- `src/i18n/es.json` es la **fuente de verdad**. De sus claves se deriva el tipo `TranslationKey`.
+- `en.json` y `ru.json` deben contener todas las claves de `es.json`. Si falta una,
+  `npm run build` falla con `TS2741`; un typo en `t("...")` también es un error de compilación.
+- Los componentes solo usan `t("clave")`; **nunca** concatenan frases. Los errores del backend
+  llegan como códigos (`invalid_credentials`) y el frontend los convierte en claves.
+- Interpolación con `{name}` / `{code}`. Si falta el valor, el placeholder queda visible en
+  lugar de imprimir `undefined`.
+- `npm run i18n:check` cubre lo que los tipos no ven: valores vacíos, claves sobrantes y
+  placeholders distintos entre idiomas.
+
+El idioma se guarda en `localStorage` (`app.language`), se detecta con `navigator.languages`
+y se refleja en `<html lang="...">` para lectores de pantalla y correctores.
+
+**Ruso:** necesita cuatro formas de plural (`one` / `few` / `many` / `other`), que se
+resolverán con `Intl.PluralRules`; fechas y números siempre con `Intl.DateTimeFormat` y
+`Intl.NumberFormat`.
+
+> Las traducciones iniciales al inglés y al ruso se generaron con IA y están pendientes de
+> revisión humana. Ver la convención de IA más abajo.
 
 ---
 
@@ -302,6 +347,18 @@ vercel dev         # frontend + funciones de /api (http://localhost:3000)
 > `/api/auth/login` con ese servidor devuelve `index.html` o un `404`. Para probar el backend hay
 > que usar `vercel dev`.
 
+Comprobaciones antes de commitear:
+
+```bash
+npm run build       # tipos + bundle
+npm run lint
+npm run i18n:check  # claves, valores y placeholders de los tres idiomas
+```
+
+Flujo en el navegador (con `vercel dev`): `/` redirige a `/admin`; sin sesión, la guardia
+manda a `/login`; al entrar con las credenciales demo se llega al panel; al recargar se
+restaura la sesión con `/api/auth/me`; «Cerrar sesión» vuelve a `/login`.
+
 Comprobar el ciclo de sesión completo por HTTP:
 
 ```bash
@@ -349,6 +406,9 @@ código funciona sin cambios.
 | 2026-11-02 | Votantes por CSV, no en JSON | La carga masiva es una funcionalidad obligatoria del enunciado. |
 | 2026-11-10 | Cookie de sesión firmada y sin estado | Evita una tabla de sesiones y una consulta por petición. El servidor solo verifica el HMAC; el coste es que una sesión robada no se puede revocar antes de expirar. |
 | 2026-11-10 | `scrypt` desde `node:crypto` en lugar de bcrypt/argon2 | Sin dependencias nativas que compilar en Vercel. `scrypt` es una KDF recomendada y viene en la biblioteca estándar. |
+| 2026-11-16 | i18n propio con diccionarios tipados | Sin dependencia ni API externa. El español define las claves y el compilador obliga a completar inglés y ruso; `i18n:check` añade valores vacíos y placeholders. |
+| 2026-11-16 | Exportaciones nombradas `GET` / `POST` en `api/` | Con `export default`, el runtime de Vercel entrega `req`/`res` de Node y el código con `Request`/`Response` falla. Las exportaciones nombradas reciben un `Request` web. |
+| 2026-11-16 | `vercel.json` con rewrite a `index.html` | El enrutado es del cliente (`BrowserRouter`): sin el rewrite, abrir `/admin` directamente en producción daría 404. Las funciones de `api/` y los archivos existentes tienen prioridad. |
 
 ---
 
@@ -359,8 +419,9 @@ código funciona sin cambios.
 - [x] Configuración del proyecto (React + TypeScript + Vite)
 - [x] Esquema de base de datos (`db/schema.sql`, 12 tablas)
 - [x] Autenticación en el backend (`login`, `me`, `logout` + cookie firmada)
-- [ ] Layout responsivo e internacionalización
-- [ ] Autenticación en el frontend (formulario, guardias de ruta, `useAuth`)
+- [x] Layout responsivo e internacionalización (es / en / ru)
+- [x] Autenticación en el frontend (formulario, guardias de ruta, `useAuth`)
+- [x] Rutas protegidas y panel inicial (`/login`, `/admin`)
 - [ ] Portal de administración y carga de CSV
 - [ ] Envío de correos con adjuntos
 - [ ] Votación por link único con ponderación

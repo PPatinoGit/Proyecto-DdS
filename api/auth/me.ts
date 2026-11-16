@@ -15,14 +15,8 @@ function json(data: unknown, status: number): Response {
   });
 }
 
-export default function handler(request: Request): Response {
-  if (request.method !== "GET") {
-    return new Response(JSON.stringify({ error: "method_not_allowed" }), {
-      status: 405,
-      headers: { "content-type": "application/json", allow: "GET" },
-    });
-  }
-
+/* Exported as GET: Vercel routes by the export name, so only GET reaches it. */
+export function GET(request: Request): Response {
   /* Validates the HMAC signature and the expiration date. */
   const session = readSession(request);
   if (!session) return json({ user: null }, 401);

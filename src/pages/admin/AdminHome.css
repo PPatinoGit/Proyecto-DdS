@@ -1,0 +1,121 @@
+/* Admin panel home. Explicit colours so it stays readable in dark mode. */
+
+.admin {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: clamp(1rem, 3vw, 2rem);
+  color-scheme: light;
+  background: #f4f6f9;
+  color: #1f2430;
+  text-align: left;
+}
+
+.admin__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.admin__title {
+  margin: 0;
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #11141a;
+}
+
+.admin__welcome {
+  margin: 0.25rem 0 0;
+  font-size: 0.9rem;
+  color: #5b6472;
+}
+
+.admin__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.admin__logout {
+  padding: 0.5rem 0.9rem;
+  border: 1px solid #c8ced8;
+  border-radius: 0.5rem;
+  background: #ffffff;
+  color: #1f2430;
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.admin__logout:hover:not(:disabled) {
+  background: #eef2ff;
+}
+
+.admin__logout:focus-visible {
+  outline: 2px solid #2f6fed;
+  outline-offset: 1px;
+}
+
+.admin__logout:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.admin__error {
+  margin: 0;
+  padding: 0.6rem 0.75rem;
+  border-radius: 0.5rem;
+  background: #fdecec;
+  color: #a11414;
+  font-size: 0.9rem;
+}
+
+.admin__sections {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1rem;
+  /* auto-fit + minmax keeps 1 / 2 / 3 columns without media queries. */
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+}
+
+.admin__card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.4rem;
+  padding: 1.25rem;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  box-shadow: 0 6px 18px rgb(0 0 0 / 6%);
+}
+
+.admin__badge {
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #2f4fa8;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.admin__card-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #11141a;
+}
+
+.admin__card-text {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: #5b6472;
+}

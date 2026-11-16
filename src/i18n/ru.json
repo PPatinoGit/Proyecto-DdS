@@ -1,5 +1,6 @@
 {
   "common.language": "Язык",
+  "common.loading": "Загрузка…",
   "login.title": "Вход",
   "login.subtitle": "Система голосования и опросов",
   "login.email": "Электронная почта",
@@ -11,5 +12,17 @@
   "login.errors.network": "Не удалось подключиться к серверу. Проверьте соединение.",
   "login.errors.server": "На сервере произошла ошибка. Попробуйте позже.",
   "login.errors.unexpectedCode": "Не удалось войти (код: {code}).",
-  "login.errors.unexpected": "Произошла непредвиденная ошибка. Попробуйте ещё раз."
+  "login.errors.unexpected": "Произошла непредвиденная ошибка. Попробуйте ещё раз.",
+  "admin.title": "Панель администратора",
+  "admin.welcome": "Вы вошли как {name}.",
+  "admin.logout": "Выйти",
+  "admin.loggingOut": "Выход…",
+  "admin.logoutError": "Не удалось выйти. Попробуйте ещё раз.",
+  "admin.comingSoon": "Скоро",
+  "admin.sections.elections.title": "Голосования",
+  "admin.sections.elections.description": "Создавайте голосования, задавайте варианты и смотрите результаты.",
+  "admin.sections.voters.title": "Избиратели",
+  "admin.sections.voters.description": "Импортируйте список избирателей из CSV и отправляйте уникальные ссылки по почте.",
+  "admin.sections.questionnaires.title": "Опросы",
+  "admin.sections.questionnaires.description": "Группируйте вопросы по категориям и назначайте ответственного."
 }

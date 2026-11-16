@@ -5,15 +5,11 @@
 
 import { clearSessionCookie } from "../../src/lib/auth";
 
-export default function handler(request: Request): Response {
-  /* POST only: a GET could be triggered by an <img src> tag on another site and would log the user out without consent. */
-  if (request.method !== "POST") {
-    return new Response(JSON.stringify({ error: "method_not_allowed" }), {
-      status: 405,
-      headers: { "content-type": "application/json", allow: "POST" },
-    });
-  }
-
+/*
+ Exported as POST: Vercel routes by the export name, so a GET (which an
+ <img src> on another site could trigger) never reaches the handler.
+*/
+export function POST(): Response {
   /* 204 No Content: the operation succeeded and there is nothing to return. */
   return new Response(null, {
     status: 204,

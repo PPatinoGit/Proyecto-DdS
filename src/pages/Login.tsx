@@ -6,7 +6,7 @@
 */
 
 import { useEffect, useState, type SubmitEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { ApiError } from "../lib/api";
 import { useAuth } from "../hooks/useAuth";
 import { useI18n } from "../i18n/i18n-context";
@@ -49,10 +49,27 @@ function describeError(error: unknown): LoginError {
   };
 }
 
+/*
+ RequireAuth sends { from: "/some/path" } when it redirects here. Only
+ internal paths are accepted: "//evil.example" would be protocol-relative
+ and navigate away from the app.
+*/
+function redirectTarget(state: unknown): string {
+  if (typeof state === "object" && state !== null && "from" in state) {
+    const from = (state as { from?: unknown }).from;
+    if (typeof from === "string" && from.startsWith("/") && !from.startsWith("//")) {
+      return from;
+    }
+  }
+  return "/admin";
+}
+
 export function Login() {
   const { login } = useAuth();
   const { t } = useI18n();
   const navigate = useNavigate();
+  const location = useLocation();
+  const target = redirectTarget(location.state);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -75,7 +92,7 @@ export function Login() {
     try {
       await login(email.trim(), password);
       // "replace" removes /login from the history: Back does not return here.
-      navigate("/admin", { replace: true });
+      navigate(target, { replace: true });
     } catch (caught) {
       setError(describeError(caught));
     } finally {

@@ -1,5 +1,6 @@
 {
   "common.language": "Language",
+  "common.loading": "Loading…",
   "login.title": "Sign in",
   "login.subtitle": "Voting and questionnaire system",
   "login.email": "Email address",
@@ -11,5 +12,17 @@
   "login.errors.network": "Could not reach the server. Check your connection.",
   "login.errors.server": "The server had a problem. Try again later.",
   "login.errors.unexpectedCode": "Could not sign in ({code}).",
-  "login.errors.unexpected": "An unexpected error occurred. Try again."
+  "login.errors.unexpected": "An unexpected error occurred. Try again.",
+  "admin.title": "Admin panel",
+  "admin.welcome": "You are signed in as {name}.",
+  "admin.logout": "Sign out",
+  "admin.loggingOut": "Signing out…",
+  "admin.logoutError": "Could not sign out. Try again.",
+  "admin.comingSoon": "Coming soon",
+  "admin.sections.elections.title": "Elections",
+  "admin.sections.elections.description": "Create elections, define options and review the results.",
+  "admin.sections.voters.title": "Voters",
+  "admin.sections.voters.description": "Import the voter list from a CSV and email the unique links.",
+  "admin.sections.questionnaires.title": "Questionnaires",
+  "admin.sections.questionnaires.description": "Group questions by category and delegate them to an owner."
 }

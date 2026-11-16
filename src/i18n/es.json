@@ -1,5 +1,6 @@
 {
   "common.language": "Idioma",
+  "common.loading": "Cargando…",
   "login.title": "Iniciar sesión",
   "login.subtitle": "Sistema de votación y cuestionarios",
   "login.email": "Correo electrónico",
@@ -11,5 +12,17 @@
   "login.errors.network": "No se pudo conectar con el servidor. Comprueba tu conexión.",
   "login.errors.server": "El servidor tuvo un problema. Inténtalo más tarde.",
   "login.errors.unexpectedCode": "No se pudo iniciar sesión ({code}).",
-  "login.errors.unexpected": "Ocurrió un error inesperado. Inténtalo de nuevo."
+  "login.errors.unexpected": "Ocurrió un error inesperado. Inténtalo de nuevo.",
+  "admin.title": "Panel de administración",
+  "admin.welcome": "Has entrado como {name}.",
+  "admin.logout": "Cerrar sesión",
+  "admin.loggingOut": "Saliendo…",
+  "admin.logoutError": "No se pudo cerrar la sesión. Inténtalo de nuevo.",
+  "admin.comingSoon": "Próximamente",
+  "admin.sections.elections.title": "Votaciones",
+  "admin.sections.elections.description": "Crea votaciones, define opciones y consulta los resultados.",
+  "admin.sections.voters.title": "Votantes",
+  "admin.sections.voters.description": "Importa el censo desde un CSV y envía los enlaces únicos por correo.",
+  "admin.sections.questionnaires.title": "Cuestionarios",
+  "admin.sections.questionnaires.description": "Agrupa las preguntas por categoría y delégalas a un responsable."
 }
