@@ -16,6 +16,9 @@
 }
 
 .login__card {
+  /* width includes the padding: otherwise 24rem + padding is wider than
+     intended and the card no longer fits small screens exactly. */
+  box-sizing: border-box;
   margin: auto;
   width: min(100%, 24rem);
   display: flex;

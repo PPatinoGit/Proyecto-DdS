@@ -384,6 +384,10 @@ vercel
 Crea la base en Turso, copia su URL y token como variables de entorno en Vercel y el mismo
 código funciona sin cambios.
 
+> **Rutas nuevas:** como el enrutado es del cliente, cada ruta pública debe añadirse a los
+> `rewrites` de `vercel.json` (`/login`, `/admin`, `/vote`, `/questionnaire`). Si falta, abrir
+> esa URL directamente devuelve 404 en producción.
+
 ---
 
 ## Convenciones
@@ -408,7 +412,7 @@ código funciona sin cambios.
 | 2026-11-10 | `scrypt` desde `node:crypto` en lugar de bcrypt/argon2 | Sin dependencias nativas que compilar en Vercel. `scrypt` es una KDF recomendada y viene en la biblioteca estándar. |
 | 2026-11-16 | i18n propio con diccionarios tipados | Sin dependencia ni API externa. El español define las claves y el compilador obliga a completar inglés y ruso; `i18n:check` añade valores vacíos y placeholders. |
 | 2026-11-16 | Exportaciones nombradas `GET` / `POST` en `api/` | Con `export default`, el runtime de Vercel entrega `req`/`res` de Node y el código con `Request`/`Response` falla. Las exportaciones nombradas reciben un `Request` web. |
-| 2026-11-16 | `vercel.json` con rewrite a `index.html` | El enrutado es del cliente (`BrowserRouter`): sin el rewrite, abrir `/admin` directamente en producción daría 404. Las funciones de `api/` y los archivos existentes tienen prioridad. |
+| 2026-11-16 | `vercel.json` con rewrites explícitos por ruta | El enrutado es del cliente (`BrowserRouter`): sin rewrite, abrir `/admin` directamente en producción daría 404. Se listan `/login`, `/admin`, `/vote` y `/questionnaire` en vez de un comodín: un `/(.*)` también capturaba los módulos de Vite y los assets en `vercel dev` y los servía como `index.html`. |
 
 ---
 

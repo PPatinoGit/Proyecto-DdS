@@ -1,3 +1,11 @@
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "rewrites": [
+    { "source": "/login", "destination": "/index.html" },
+    { "source": "/admin", "destination": "/index.html" },
+    { "source": "/admin/(.*)", "destination": "/index.html" },
+    { "source": "/vote", "destination": "/index.html" },
+    { "source": "/vote/(.*)", "destination": "/index.html" },
+    { "source": "/questionnaire", "destination": "/index.html" },
+    { "source": "/questionnaire/(.*)", "destination": "/index.html" }
+  ]
 }
