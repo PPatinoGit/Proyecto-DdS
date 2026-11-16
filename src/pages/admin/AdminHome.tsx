@@ -37,6 +37,7 @@ const SECTIONS = [
     id: "voters",
     titleKey: "admin.sections.voters.title",
     descriptionKey: "admin.sections.voters.description",
+    to: "/admin/voters",
   },
   {
     id: "questionnaires",

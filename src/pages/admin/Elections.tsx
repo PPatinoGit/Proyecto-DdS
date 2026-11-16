@@ -269,9 +269,17 @@ export function Elections() {
                     </p>
                   </div>
 
-                  <span className={`elections__status elections__status--${election.status}`}>
-                    {t(STATUS_KEYS[election.status])}
-                  </span>
+                  <div className="elections__item-side">
+                    <span className={`elections__status elections__status--${election.status}`}>
+                      {t(STATUS_KEYS[election.status])}
+                    </span>
+                    <Link
+                      className="elections__voters-link"
+                      to={`/admin/voters?election=${election.id}`}
+                    >
+                      {t("admin.elections.votersLink")}
+                    </Link>
+                  </div>
                 </li>
               ))}
             </ul>

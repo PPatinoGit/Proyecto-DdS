@@ -85,10 +85,11 @@ delegarse a distintas personas de la organización.
 >
 > `data/users.json` · `db/schema.sql` · `scripts/hash-password.mjs` · `scripts/init-db.mjs` ·
 > `scripts/check-i18n.mjs` · `api/auth/login.ts` · `api/auth/logout.ts` · `api/auth/me.ts` ·
-> `api/elections/index.ts` · `src/lib/{auth,db,users,api,auth-api,elections,elections-api,session,types}.ts` ·
+> `api/elections/index.ts` · `api/elections/voters.ts` ·
+> `src/lib/{auth,db,users,api,auth-api,elections,elections-api,voters,voters-api,csv,session,types}.ts` ·
 > `src/hooks/useAuth.ts` · `src/components/auth/{AuthProvider,route-guards}` ·
 > `src/components/ui/{LanguageSwitcher,FullScreenLoader}` · `src/i18n/` ·
-> `src/pages/Login.tsx` · `src/pages/admin/{AdminHome,Elections}.tsx` · `src/App.tsx` ·
+> `src/pages/Login.tsx` · `src/pages/admin/{AdminHome,Elections,Voters}.tsx` · `src/App.tsx` ·
 > `src/main.tsx` · `vercel.json`
 
 ```
@@ -100,7 +101,7 @@ Proyecto DdS/
 │   │   └── me.ts                 # GET  /api/auth/me
 │   ├── elections/
 │   │   ├── index.ts              # GET/POST /api/elections (listar / crear)
-│   │   └── voters-import.ts      # carga masiva de CSV (pendiente)
+│   │   └── voters.ts             # GET/POST /api/elections/voters (censo / importar CSV)
 │   ├── vote/
 │   │   └── [token].ts            # emitir voto con link único
 │   └── questionnaires/
@@ -130,7 +131,7 @@ Proyecto DdS/
 │   │   ├── forms/                # inputs, validación
 │   │   └── ui/                   # LanguageSwitcher, FullScreenLoader, botones, tablas
 │   ├── pages/
-│   │   ├── admin/                # portal de administración (AdminHome, Elections)
+│   │   ├── admin/                # portal de administración (AdminHome, Elections, Voters)
 │   │   ├── vote/                 # flujo de votación
 │   │   ├── questionnaire/        # cuestionarios y delegación
 │   │   └── Login.tsx
@@ -145,13 +146,16 @@ Proyecto DdS/
 │   │   ├── api.ts                # cliente HTTP (ApiError)
 │   │   ├── auth.ts               # sesión y permisos (servidor)
 │   │   ├── auth-api.ts           # llamadas tipadas a /api/auth
+│   │   ├── csv.ts                # parser y validación de CSV (cliente y servidor)
 │   │   ├── db.ts                 # cliente libSQL (archivo local o Turso)
 │   │   ├── elections.ts          # consultas de votaciones (servidor)
 │   │   ├── elections-api.ts      # llamadas tipadas a /api/elections
 │   │   ├── session.ts            # usuario de la sesión en el servidor
 │   │   ├── types.ts              # tipos compartidos cliente/servidor
 │   │   ├── users.ts              # lectura de data/users.json
-│   │   └── validation.ts         # esquemas Zod
+│   │   ├── validation.ts         # esquemas Zod
+│   │   ├── voters.ts             # censo e importación (servidor)
+│   │   └── voters-api.ts         # llamadas tipadas a /api/elections/voters
 │   ├── hooks/
 │   │   └── useAuth.ts            # contexto de sesión + hook
 │   ├── App.tsx                   # tabla de rutas
@@ -258,6 +262,65 @@ curl -s -b /tmp/dds-cookies.txt -X POST http://localhost:3000/api/elections \
 En la interfaz: `/admin` → tarjeta **Votaciones** → **Gestionar** (`/admin/elections`).
 La página lista las votaciones existentes y permite crear nuevas; los errores del servidor se
 traducen a partir de su código y la lista se puede reintentar si falla la carga.
+
+---
+
+## Carga de votantes por CSV
+
+Los votantes de cada votación se cargan desde un archivo CSV; no hay formulario individual.
+
+Columnas (la cabecera es obligatoria y no distingue mayúsculas):
+
+| Columna | Obligatoria | Regla |
+| --- | --- | --- |
+| `email` | Sí | Correo válido y único dentro del archivo. Se guarda en minúsculas. |
+| `name` | Sí | Hasta 200 caracteres. |
+| `birthdate` | No | Fecha real en formato `AAAA-MM-DD` y no futura. |
+| `gender` | No | Texto libre de hasta 40 caracteres. |
+| `weight` | No | Número entre `0.01` y `1000`. Por defecto `1`. |
+
+Límites y formato: máximo **1000 filas** y **2 000 000 de caracteres** por archivo. El parser
+admite campos entre comillas (con comas y saltos de línea dentro), comillas escapadas (`""`),
+finales de línea `\r\n` / `\n` y BOM al inicio.
+
+La misma función (`parseVoterCsv` en `src/lib/csv.ts`) valida en el navegador y en el servidor,
+así que la vista previa no puede aceptar algo que la API luego rechace. Los errores se devuelven
+como códigos (`required`, `duplicate_email`, `invalid_birthdate`, `weight_range`, …) y el
+frontend los traduce; cada uno indica la línea y la columna.
+
+| Método | Ruta | Respuesta |
+| --- | --- | --- |
+| `GET` | `/api/elections/voters?electionId=1` | `200` con `{ election, voters }` · `400` `invalid_input` · `404` `election_not_found` · `401` sin sesión |
+| `POST` | `/api/elections/voters` | `200` con `{ summary }` · `400` `invalid_csv` (con `fatal` o `issues`) · `404` `election_not_found` · `401` sin sesión |
+
+El CSV se envía como JSON (`{ "electionId": 1, "csv": "email,name\n..." }`) en lugar de
+`multipart/form-data`: el mismo parser corre en ambos lados y el límite de tamaño es explícito.
+
+La importación es **atómica e idempotente**. Todo ocurre en un único `batch` de escritura:
+
+- `person` se inserta o actualiza por `email` (el votante se reutiliza entre votaciones).
+- `voter_roll` se inserta o actualiza por `(election_id, person_id)`, así que **reimportar no
+  duplica**: actualiza nombre, fecha, género y el peso de esa votación.
+- Si una sola fila tiene un error, no se escribe ninguna.
+
+```bash
+# censo de una votación
+curl -s -b /tmp/dds-cookies.txt \
+  "http://localhost:3000/api/elections/voters?electionId=1"
+
+# importar (el CSV va escapado dentro del JSON)
+curl -s -b /tmp/dds-cookies.txt -X POST http://localhost:3000/api/elections/voters \
+  -H "content-type: application/json" \
+  -d '{"electionId":1,"csv":"email,name,birthdate,gender,weight\nana@example.com,Ana Pérez,2000-05-14,female,2\nluis@example.com,Luis Gómez,1999-11-02,male,1\n"}'
+```
+
+En la interfaz: `/admin` → tarjeta **Votantes** (`/admin/voters`), o el enlace **Votantes** de
+cada fila en `/admin/elections`, que abre la página con la votación preseleccionada
+(`?election=1`). Allí se elige la votación, se descarga una **plantilla** con las columnas
+correctas, se selecciona el archivo y se revisa la **vista previa**: las primeras filas, las
+filas con error resaltadas y la lista de problemas por línea. El botón de importar solo se
+habilita cuando no hay errores. Debajo se muestra el **censo** actual de la votación,
+ordenado por nombre, con la ponderación de cada votante.
 
 ---
 
@@ -398,7 +461,8 @@ npm run i18n:check  # claves, valores y placeholders de los tres idiomas
 Flujo en el navegador (con `vercel dev`): `/` redirige a `/admin`; sin sesión, la guardia
 manda a `/login`; al entrar con las credenciales demo se llega al panel; al recargar se
 restaura la sesión con `/api/auth/me`; «Cerrar sesión» vuelve a `/login`. Desde el panel, la
-tarjeta **Votaciones** abre `/admin/elections`, donde se crean y listan borradores.
+tarjeta **Votaciones** abre `/admin/elections`, donde se crean y listan borradores, y la tarjeta
+**Votantes** abre `/admin/voters`, donde se importa el censo de una votación desde CSV.
 
 Comprobar el ciclo de sesión completo por HTTP:
 
@@ -455,6 +519,8 @@ código funciona sin cambios.
 | 2026-11-16 | Exportaciones nombradas `GET` / `POST` en `api/` | Con `export default`, el runtime de Vercel entrega `req`/`res` de Node y el código con `Request`/`Response` falla. Las exportaciones nombradas reciben un `Request` web. |
 | 2026-11-16 | `vercel.json` con rewrites explícitos por ruta | El enrutado es del cliente (`BrowserRouter`): sin rewrite, abrir `/admin` directamente en producción daría 404. Se listan `/login`, `/admin`, `/vote` y `/questionnaire` en vez de un comodín: un `/(.*)` también capturaba los módulos de Vite y los assets en `vercel dev` y los servía como `index.html`. |
 | 2026-11-16 | Votaciones nuevas en `draft` y fechas opcionales | Crear una votación no debe publicarla ni enviar links todavía. Las fechas pueden definirse después; `closesAt` debe ser posterior a `opensAt` y ambas se guardan en UTC para que no dependan de la zona del servidor. |
+| 2026-11-16 | Un único parser de CSV para cliente y servidor | La vista previa usa exactamente la misma validación que la importación, así que no puede mostrar «válido» para un archivo que la API rechazará. Es TypeScript puro, sin APIs de Node ni del DOM. |
+| 2026-11-16 | Importación atómica con `batch` de libSQL | `person` se reutiliza por `email` y `voter_roll` por `(election_id, person_id)`. Todo se escribe en una sola transacción: o entran todas las filas o ninguna, y reimportar actualiza en vez de duplicar. |
 
 ---
 
@@ -469,7 +535,7 @@ código funciona sin cambios.
 - [x] Autenticación en el frontend (formulario, guardias de ruta, `useAuth`)
 - [x] Rutas protegidas y panel inicial (`/login`, `/admin`)
 - [x] Portal de administración: crear y listar votaciones (`/admin/elections`)
-- [ ] Carga masiva de votantes por CSV
+- [x] Carga masiva de votantes por CSV con vista previa (`/admin/voters`)
 - [ ] Envío de correos con adjuntos
 - [ ] Votación por link único con ponderación
 - [ ] Cuestionarios con categorías y delegación

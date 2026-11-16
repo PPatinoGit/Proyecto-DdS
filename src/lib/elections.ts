@@ -48,6 +48,21 @@ export async function listElections(): Promise<Election[]> {
   return result.rows.map((row) => toElection(row as unknown as ElectionRow));
 }
 
+/** Minimal election data for pages that only need to know it exists. */
+export async function findElectionById(
+  id: number,
+): Promise<{ id: number; title: string } | null> {
+  const result = await db.execute({
+    sql: "SELECT id, title FROM election WHERE id = ?",
+    args: [id],
+  });
+
+  const row = result.rows[0];
+  if (row === undefined) return null;
+
+  return { id: Number(row.id), title: String(row.title) };
+}
+
 /** Creates a draft election. Publishing it is a separate step. */
 export async function createElection(input: ElectionInputPayload): Promise<Election> {
   const result = await db.execute({

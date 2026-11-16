@@ -28,6 +28,7 @@
     "src/lib/users.ts",
     "src/lib/session.ts",
     "src/lib/elections.ts",
+    "src/lib/voters.ts",
     "src/lib/validation.ts"
   ]
 }

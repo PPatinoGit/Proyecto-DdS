@@ -1,0 +1,319 @@
+/* Voters page. Explicit colours to stay readable in dark mode. */
+
+.voters {
+  flex: 1;
+  padding: clamp(1rem, 3vw, 2rem);
+  color-scheme: light;
+  background: #f4f6f9;
+  color: #1f2430;
+  text-align: left;
+}
+
+.voters__content {
+  width: min(100%, 68rem);
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.voters__header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.voters__topbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.voters__back {
+  align-self: flex-start;
+  color: #2f6fed;
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.voters__back:hover {
+  text-decoration: underline;
+}
+
+.voters__title {
+  margin: 0;
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #11141a;
+}
+
+.voters__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  box-shadow: 0 6px 18px rgb(0 0 0 / 6%);
+}
+
+.voters__panel-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #11141a;
+}
+
+.voters__count {
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #2f4fa8;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.voters__subtitle {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #11141a;
+}
+
+.voters__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.voters__field select {
+  padding: 0.55rem 0.7rem;
+  border: 1px solid #c8ced8;
+  border-radius: 0.5rem;
+  background: #ffffff;
+  color: #11141a;
+  font: inherit;
+  font-weight: 400;
+}
+
+.voters__field select:focus-visible {
+  outline: 2px solid #2f6fed;
+  outline-offset: 1px;
+}
+
+.voters__hint {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: #5b6472;
+}
+
+.voters__file-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.voters__file-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.55rem 0.9rem;
+  border-radius: 0.5rem;
+  background: #2f6fed;
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.voters__file-button:hover {
+  background: #255cc4;
+}
+
+.voters__file-button:focus-within {
+  outline: 2px solid #2f6fed;
+  outline-offset: 2px;
+}
+
+.voters__file-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.voters__secondary {
+  padding: 0.5rem 0.85rem;
+  border: 1px solid #c8ced8;
+  border-radius: 0.5rem;
+  background: #ffffff;
+  color: #1f2430;
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.voters__secondary:hover {
+  background: #f1f3f6;
+}
+
+.voters__file-name {
+  font-size: 0.85rem;
+  color: #5b6472;
+  overflow-wrap: anywhere;
+}
+
+.voters__preview {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.voters__message {
+  margin: 0;
+  padding: 0.6rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.voters__message p {
+  margin: 0;
+}
+
+.voters__message--error {
+  background: #fdecec;
+  color: #a11414;
+}
+
+.voters__message--ok {
+  background: #e8f6ee;
+  color: #1c6b3c;
+}
+
+.voters__retry {
+  margin-top: 0.5rem;
+  padding: 0.35rem 0.7rem;
+  border: 1px solid #a11414;
+  border-radius: 0.4rem;
+  background: transparent;
+  color: #a11414;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.voters__table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+  border: 1px solid #e5e8ee;
+  border-radius: 0.5rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+.voters__table {
+  width: 100%;
+  min-width: 42rem;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.voters__table th,
+.voters__table td {
+  padding: 0.5rem 0.65rem;
+  border-bottom: 1px solid #e5e8ee;
+  text-align: left;
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+.voters__table thead th {
+  background: #f7f8fb;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #5b6472;
+}
+
+.voters__table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.voters__table td {
+  color: #1f2430;
+}
+
+.voters__row--invalid {
+  background: #fdecec;
+}
+
+.voters__row--invalid td {
+  color: #a11414;
+}
+
+.voters__issues {
+  max-height: 14rem;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0.6rem 0.75rem 0.6rem 1.6rem;
+  border-radius: 0.5rem;
+  background: #fdecec;
+  color: #a11414;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.voters__submit {
+  align-self: flex-start;
+  padding: 0.6rem 1rem;
+  border: 0;
+  border-radius: 0.5rem;
+  background: #2f6fed;
+  color: #ffffff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.voters__submit:hover:not(:disabled) {
+  background: #255cc4;
+}
+
+.voters__submit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.voters__link-button {
+  align-self: flex-start;
+  padding: 0.5rem 0.85rem;
+  border-radius: 0.5rem;
+  background: #2f6fed;
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.voters__link-button:hover {
+  background: #255cc4;
+}
+
+@media (max-width: 480px) {
+  .voters__panel {
+    padding: 1.1rem;
+  }
+}

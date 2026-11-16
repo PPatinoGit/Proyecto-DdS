@@ -32,3 +32,19 @@ export type ElectionInput = {
   opensAt: string | null;
   closesAt: string | null;
 };
+
+/* Person inside an election roster, with the weight used in that election. */
+export type Voter = {
+  personId: number;
+  email: string;
+  name: string;
+  birthdate: string | null;
+  gender: string | null;
+  weight: number;
+};
+
+/* Result of a CSV import. */
+export type VoterImportSummary = {
+  imported: number;
+  total: number;
+};
