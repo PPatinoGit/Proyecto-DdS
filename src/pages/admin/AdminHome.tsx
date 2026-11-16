@@ -6,6 +6,7 @@
 */
 
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { useI18n } from "../../i18n/i18n-context";
 import type { TranslationKey } from "../../i18n";
@@ -19,6 +20,8 @@ type Section = {
   id: string;
   titleKey: TranslationKey;
   descriptionKey: TranslationKey;
+  /** Present once the section has a page; missing sections are "coming soon". */
+  to?: string;
 };
 
 /* `satisfies` keeps the literal types of the keys (so a typo fails to
@@ -28,6 +31,7 @@ const SECTIONS = [
     id: "elections",
     titleKey: "admin.sections.elections.title",
     descriptionKey: "admin.sections.elections.description",
+    to: "/admin/elections",
   },
   {
     id: "voters",
@@ -101,13 +105,32 @@ export function AdminHome() {
       )}
 
       <ul className="admin__sections">
-        {SECTIONS.map((section) => (
-          <li key={section.id} className="admin__card">
-            <span className="admin__badge">{t("admin.comingSoon")}</span>
-            <h2 className="admin__card-title">{t(section.titleKey)}</h2>
-            <p className="admin__card-text">{t(section.descriptionKey)}</p>
-          </li>
-        ))}
+        {SECTIONS.map((section) => {
+          const content = (
+            <>
+              <h2 className="admin__card-title">{t(section.titleKey)}</h2>
+              <p className="admin__card-text">{t(section.descriptionKey)}</p>
+            </>
+          );
+
+          return (
+            <li key={section.id} className="admin__card">
+              {"to" in section ? (
+                <Link className="admin__card-link" to={section.to}>
+                  {content}
+                  <span className="admin__card-action">
+                    {t("admin.manage")} <span aria-hidden="true">→</span>
+                  </span>
+                </Link>
+              ) : (
+                <>
+                  <span className="admin__badge">{t("admin.comingSoon")}</span>
+                  {content}
+                </>
+              )}
+            </li>
+          );
+        })}
       </ul>
     </main>
   );

@@ -13,3 +13,22 @@ export type PublicUser = {
   name: string;
   role: Role;
 };
+
+/* Status stored in election.status. */
+export type ElectionStatus = "draft" | "open" | "closed";
+
+/* Election as returned by the API. Dates are ISO 8601 strings or null. */
+export type Election = {
+  id: number;
+  title: string;
+  status: ElectionStatus;
+  opensAt: string | null;
+  closesAt: string | null;
+};
+
+/* Body accepted by POST /api/elections. Dates are ISO strings or null. */
+export type ElectionInput = {
+  title: string;
+  opensAt: string | null;
+  closesAt: string | null;
+};

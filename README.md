@@ -85,10 +85,11 @@ delegarse a distintas personas de la organización.
 >
 > `data/users.json` · `db/schema.sql` · `scripts/hash-password.mjs` · `scripts/init-db.mjs` ·
 > `scripts/check-i18n.mjs` · `api/auth/login.ts` · `api/auth/logout.ts` · `api/auth/me.ts` ·
-> `src/lib/{auth,db,users,api,auth-api,types}.ts` · `src/hooks/useAuth.ts` ·
-> `src/components/auth/{AuthProvider,route-guards}` ·
-> `src/components/ui/{LanguageSwitcher,FullScreenLoader}` · `src/i18n/` · `src/pages/Login.tsx` ·
-> `src/pages/admin/AdminHome.tsx` · `src/App.tsx` · `src/main.tsx` · `vercel.json`
+> `api/elections/index.ts` · `src/lib/{auth,db,users,api,auth-api,elections,elections-api,session,types}.ts` ·
+> `src/hooks/useAuth.ts` · `src/components/auth/{AuthProvider,route-guards}` ·
+> `src/components/ui/{LanguageSwitcher,FullScreenLoader}` · `src/i18n/` ·
+> `src/pages/Login.tsx` · `src/pages/admin/{AdminHome,Elections}.tsx` · `src/App.tsx` ·
+> `src/main.tsx` · `vercel.json`
 
 ```
 Proyecto DdS/
@@ -98,8 +99,8 @@ Proyecto DdS/
 │   │   ├── logout.ts             # POST /api/auth/logout
 │   │   └── me.ts                 # GET  /api/auth/me
 │   ├── elections/
-│   │   ├── index.ts              # crear / listar votaciones
-│   │   └── voters-import.ts      # carga masiva de CSV
+│   │   ├── index.ts              # GET/POST /api/elections (listar / crear)
+│   │   └── voters-import.ts      # carga masiva de CSV (pendiente)
 │   ├── vote/
 │   │   └── [token].ts            # emitir voto con link único
 │   └── questionnaires/
@@ -129,7 +130,7 @@ Proyecto DdS/
 │   │   ├── forms/                # inputs, validación
 │   │   └── ui/                   # LanguageSwitcher, FullScreenLoader, botones, tablas
 │   ├── pages/
-│   │   ├── admin/                # portal de administración (AdminHome)
+│   │   ├── admin/                # portal de administración (AdminHome, Elections)
 │   │   ├── vote/                 # flujo de votación
 │   │   ├── questionnaire/        # cuestionarios y delegación
 │   │   └── Login.tsx
@@ -145,6 +146,9 @@ Proyecto DdS/
 │   │   ├── auth.ts               # sesión y permisos (servidor)
 │   │   ├── auth-api.ts           # llamadas tipadas a /api/auth
 │   │   ├── db.ts                 # cliente libSQL (archivo local o Turso)
+│   │   ├── elections.ts          # consultas de votaciones (servidor)
+│   │   ├── elections-api.ts      # llamadas tipadas a /api/elections
+│   │   ├── session.ts            # usuario de la sesión en el servidor
 │   │   ├── types.ts              # tipos compartidos cliente/servidor
 │   │   ├── users.ts              # lectura de data/users.json
 │   │   └── validation.ts         # esquemas Zod
@@ -218,6 +222,42 @@ Un método distinto del declarado lo rechaza Vercel antes de entrar al handler (
 > **Limitación conocida:** al no guardar sesiones en la base de datos, una sesión robada
 > no se puede revocar antes de expirar (2 horas). Es un intercambio asumido para la demo.
 > Si hiciera falta, habría que mover las sesiones a SQLite y consultarlas en cada petición.
+
+---
+
+## API de elecciones
+
+| Método | Ruta | Respuesta |
+| --- | --- | --- |
+| `GET` | `/api/elections` | `200` con `{ elections }` · `401` sin sesión |
+| `POST` | `/api/elections` | `201` con `{ election }` · `400` `invalid_json` / `invalid_input` · `401` sin sesión |
+
+Ambas rutas exigen una sesión de administrador válida: las votaciones no son datos públicos.
+La lista llega ordenada de la más nueva a la más antigua.
+
+Reglas de creación:
+
+- La votación nace en estado **`draft`** (borrador). Publicarla y enviar los links será un
+  paso posterior.
+- `opensAt` y `closesAt` son **opcionales** (`null` significa «sin definir»).
+- `closesAt` debe ser posterior a `opensAt`; si no, responde `invalid_input`.
+- El formulario usa `<input type="datetime-local">`, que no lleva zona horaria. El navegador
+  la interpreta en la hora local del administrador y la API guarda un ISO 8601 en **UTC**.
+  Al mostrarla, el frontend la vuelve a formatear con `Intl.DateTimeFormat` en el idioma activo.
+
+```bash
+# listar (con la cookie del login)
+curl -s -b /tmp/dds-cookies.txt http://localhost:3000/api/elections
+
+# crear un borrador con fechas
+curl -s -b /tmp/dds-cookies.txt -X POST http://localhost:3000/api/elections \
+  -H "content-type: application/json" \
+  -d '{"title":"Elecciones al consejo 2026","opensAt":"2026-12-01T09:30","closesAt":"2026-12-02T18:00"}'
+```
+
+En la interfaz: `/admin` → tarjeta **Votaciones** → **Gestionar** (`/admin/elections`).
+La página lista las votaciones existentes y permite crear nuevas; los errores del servidor se
+traducen a partir de su código y la lista se puede reintentar si falla la carga.
 
 ---
 
@@ -357,7 +397,8 @@ npm run i18n:check  # claves, valores y placeholders de los tres idiomas
 
 Flujo en el navegador (con `vercel dev`): `/` redirige a `/admin`; sin sesión, la guardia
 manda a `/login`; al entrar con las credenciales demo se llega al panel; al recargar se
-restaura la sesión con `/api/auth/me`; «Cerrar sesión» vuelve a `/login`.
+restaura la sesión con `/api/auth/me`; «Cerrar sesión» vuelve a `/login`. Desde el panel, la
+tarjeta **Votaciones** abre `/admin/elections`, donde se crean y listan borradores.
 
 Comprobar el ciclo de sesión completo por HTTP:
 
@@ -413,6 +454,7 @@ código funciona sin cambios.
 | 2026-11-16 | i18n propio con diccionarios tipados | Sin dependencia ni API externa. El español define las claves y el compilador obliga a completar inglés y ruso; `i18n:check` añade valores vacíos y placeholders. |
 | 2026-11-16 | Exportaciones nombradas `GET` / `POST` en `api/` | Con `export default`, el runtime de Vercel entrega `req`/`res` de Node y el código con `Request`/`Response` falla. Las exportaciones nombradas reciben un `Request` web. |
 | 2026-11-16 | `vercel.json` con rewrites explícitos por ruta | El enrutado es del cliente (`BrowserRouter`): sin rewrite, abrir `/admin` directamente en producción daría 404. Se listan `/login`, `/admin`, `/vote` y `/questionnaire` en vez de un comodín: un `/(.*)` también capturaba los módulos de Vite y los assets en `vercel dev` y los servía como `index.html`. |
+| 2026-11-16 | Votaciones nuevas en `draft` y fechas opcionales | Crear una votación no debe publicarla ni enviar links todavía. Las fechas pueden definirse después; `closesAt` debe ser posterior a `opensAt` y ambas se guardan en UTC para que no dependan de la zona del servidor. |
 
 ---
 
@@ -426,7 +468,8 @@ código funciona sin cambios.
 - [x] Layout responsivo e internacionalización (es / en / ru)
 - [x] Autenticación en el frontend (formulario, guardias de ruta, `useAuth`)
 - [x] Rutas protegidas y panel inicial (`/login`, `/admin`)
-- [ ] Portal de administración y carga de CSV
+- [x] Portal de administración: crear y listar votaciones (`/admin/elections`)
+- [ ] Carga masiva de votantes por CSV
 - [ ] Envío de correos con adjuntos
 - [ ] Votación por link único con ponderación
 - [ ] Cuestionarios con categorías y delegación
