@@ -1,0 +1,15 @@
+{
+  "common.language": "Язык",
+  "login.title": "Вход",
+  "login.subtitle": "Система голосования и опросов",
+  "login.email": "Электронная почта",
+  "login.password": "Пароль",
+  "login.submit": "Войти",
+  "login.submitting": "Вход…",
+  "login.errors.invalidCredentials": "Неверная почта или пароль.",
+  "login.errors.invalidInput": "Проверьте адрес электронной почты и пароль.",
+  "login.errors.network": "Не удалось подключиться к серверу. Проверьте соединение.",
+  "login.errors.server": "На сервере произошла ошибка. Попробуйте позже.",
+  "login.errors.unexpectedCode": "Не удалось войти (код: {code}).",
+  "login.errors.unexpected": "Произошла непредвиденная ошибка. Попробуйте ещё раз."
+}

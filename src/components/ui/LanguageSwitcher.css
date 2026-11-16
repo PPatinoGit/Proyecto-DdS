@@ -1,0 +1,23 @@
+.language-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: #5b6472;
+  color-scheme: light;
+}
+
+.language-switcher__select {
+  padding: 0.3rem 0.5rem;
+  border: 1px solid #c8ced8;
+  border-radius: 0.4rem;
+  background: #ffffff;
+  color: #11141a;
+  font: inherit;
+  cursor: pointer;
+}
+
+.language-switcher__select:focus-visible {
+  outline: 2px solid #2f6fed;
+  outline-offset: 1px;
+}

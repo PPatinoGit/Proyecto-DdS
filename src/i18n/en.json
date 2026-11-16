@@ -1,0 +1,15 @@
+{
+  "common.language": "Language",
+  "login.title": "Sign in",
+  "login.subtitle": "Voting and questionnaire system",
+  "login.email": "Email address",
+  "login.password": "Password",
+  "login.submit": "Sign in",
+  "login.submitting": "Signing in…",
+  "login.errors.invalidCredentials": "Incorrect email or password.",
+  "login.errors.invalidInput": "Check the email address and password.",
+  "login.errors.network": "Could not reach the server. Check your connection.",
+  "login.errors.server": "The server had a problem. Try again later.",
+  "login.errors.unexpectedCode": "Could not sign in ({code}).",
+  "login.errors.unexpected": "An unexpected error occurred. Try again."
+}

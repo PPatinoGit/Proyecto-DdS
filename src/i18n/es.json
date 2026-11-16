@@ -1,0 +1,15 @@
+{
+  "common.language": "Idioma",
+  "login.title": "Iniciar sesión",
+  "login.subtitle": "Sistema de votación y cuestionarios",
+  "login.email": "Correo electrónico",
+  "login.password": "Contraseña",
+  "login.submit": "Entrar",
+  "login.submitting": "Entrando…",
+  "login.errors.invalidCredentials": "Correo o contraseña incorrectos.",
+  "login.errors.invalidInput": "Revisa el correo electrónico y la contraseña.",
+  "login.errors.network": "No se pudo conectar con el servidor. Comprueba tu conexión.",
+  "login.errors.server": "El servidor tuvo un problema. Inténtalo más tarde.",
+  "login.errors.unexpectedCode": "No se pudo iniciar sesión ({code}).",
+  "login.errors.unexpected": "Ocurrió un error inesperado. Inténtalo de nuevo."
+}

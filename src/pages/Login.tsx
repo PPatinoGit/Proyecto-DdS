@@ -1,50 +1,68 @@
-/* 
+/*
  Login page.
 
- Texts are hardcoded in Spanish for now: the i18n block moves them to
- src/i18n/ and this file will read them through a translation hook.
+ Every visible text comes from the i18n dictionaries: this file only knows
+ translation keys, never sentences.
 */
 
-import { useState, type SubmitEvent } from "react";
+import { useEffect, useState, type SubmitEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { ApiError } from "../lib/api";
 import { useAuth } from "../hooks/useAuth";
+import { useI18n } from "../i18n/i18n-context";
+import type { TranslateValues, TranslationKey } from "../i18n";
+import { LanguageSwitcher } from "../components/ui/LanguageSwitcher";
 import "./Login.css";
 
-/** Turns the API error into a message plus whether the fields should look invalid. */
-function describeError(error: unknown): { message: string; fields: boolean } {
+type LoginError = {
+  key: TranslationKey;
+  /** Whether the inputs should look invalid. */
+  fields: boolean;
+  /** Values for placeholders such as {code}. */
+  values?: TranslateValues;
+};
+
+/* Maps the API error to a translation key; the text lives in the dictionaries. */
+function describeError(error: unknown): LoginError {
   if (!(error instanceof ApiError)) {
-    return { message: "Ocurrió un error inesperado. Inténtalo de nuevo.", fields: false };
+    return { key: "login.errors.unexpected", fields: false };
   }
 
   switch (error.code) {
     case "invalid_credentials":
-      return { message: "Correo o contraseña incorrectos.", fields: true };
+      return { key: "login.errors.invalidCredentials", fields: true };
     case "invalid_input":
-      return { message: "Revisa el correo electrónico y la contraseña.", fields: true };
+      return { key: "login.errors.invalidInput", fields: true };
     case "network_error":
-      return {
-        message: "No se pudo conectar con el servidor. Comprueba tu conexión.",
-        fields: false,
-      };
+      return { key: "login.errors.network", fields: false };
     default:
       break;
   }
 
   if (error.status >= 500) {
-    return { message: "El servidor tuvo un problema. Inténtalo más tarde.", fields: false };
+    return { key: "login.errors.server", fields: false };
   }
-  return { message: `No se pudo iniciar sesión (${error.code}).`, fields: false };
+  return {
+    key: "login.errors.unexpectedCode",
+    fields: false,
+    values: { code: error.code },
+  };
 }
 
 export function Login() {
   const { login } = useAuth();
+  const { t } = useI18n();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<{ message: string; fields: boolean } | null>(null);
+  const [error, setError] = useState<LoginError | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  // Keep the browser tab title in the selected language.
+  useEffect(() => {
+    document.title = t("login.title");
+  }, [t]);
 
   async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -67,18 +85,22 @@ export function Login() {
 
   return (
     <main className="login">
+      <div className="login__toolbar">
+        <LanguageSwitcher />
+      </div>
+
       <form className="login__card" onSubmit={handleSubmit} aria-busy={submitting}>
-        <h1 className="login__title">Iniciar sesión</h1>
-        <p className="login__subtitle">Sistema de votación y cuestionarios</p>
+        <h1 className="login__title">{t("login.title")}</h1>
+        <p className="login__subtitle">{t("login.subtitle")}</p>
 
         {error !== null && (
           <p className="login__error" role="alert">
-            {error.message}
+            {t(error.key, error.values)}
           </p>
         )}
 
         <label className="login__field">
-          <span>Correo electrónico</span>
+          <span>{t("login.email")}</span>
           <input
             type="email"
             name="email"
@@ -93,7 +115,7 @@ export function Login() {
         </label>
 
         <label className="login__field">
-          <span>Contraseña</span>
+          <span>{t("login.password")}</span>
           <input
             type="password"
             name="password"
@@ -108,7 +130,7 @@ export function Login() {
         </label>
 
         <button type="submit" className="login__submit" disabled={submitting}>
-          {submitting ? "Entrando…" : "Entrar"}
+          {submitting ? t("login.submitting") : t("login.submit")}
         </button>
       </form>
     </main>
