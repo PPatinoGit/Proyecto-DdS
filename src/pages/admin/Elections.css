@@ -237,13 +237,13 @@
   gap: 0.35rem;
 }
 
-.elections__voters-link {
+.elections__action-link {
   color: #2f6fed;
   font-size: 0.85rem;
   font-weight: 600;
   text-decoration: none;
 }
 
-.elections__voters-link:hover {
+.elections__action-link:hover {
   text-decoration: underline;
 }

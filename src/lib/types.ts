@@ -48,3 +48,34 @@ export type VoterImportSummary = {
   imported: number;
   total: number;
 };
+
+/* One file attached to an email; `data` is standard base64 without the prefix. */
+export type MailAttachment = {
+  name: string;
+  contentType: string;
+  data: string;
+};
+
+/* Whether the server can really send emails with the current environment. */
+export type MailConfig = {
+  configured: boolean;
+  from: string | null;
+  dryRun: boolean;
+};
+
+/* Per-recipient result of a send. `personId` is null for the test email. */
+export type MailRecipientResult = {
+  personId: number | null;
+  email: string;
+  status: "sent" | "failed";
+  /** Machine-readable failure code, null when the email was sent. */
+  code: string | null;
+};
+
+/* Aggregate returned by the send endpoint for one chunk of recipients. */
+export type MailSendSummary = {
+  sent: number;
+  failed: number;
+  dryRun: boolean;
+  results: MailRecipientResult[];
+};

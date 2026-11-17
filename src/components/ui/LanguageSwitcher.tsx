@@ -1,13 +1,7 @@
-import { isLanguage, LANGUAGES, type Language } from "../../i18n";
+import { isLanguage, LANGUAGES } from "../../i18n";
+import { LANGUAGE_LABELS } from "../../i18n/language-labels";
 import { useI18n } from "../../i18n/i18n-context";
 import "./LanguageSwitcher.css";
-
-/* Language names are always written in their own language. */
-const LABELS: Record<Language, string> = {
-  es: "Español",
-  en: "English",
-  ru: "Русский",
-};
 
 export function LanguageSwitcher() {
   const { language, setLanguage, t } = useI18n();
@@ -25,7 +19,7 @@ export function LanguageSwitcher() {
       >
         {LANGUAGES.map((code) => (
           <option key={code} value={code} lang={code}>
-            {LABELS[code]}
+            {LANGUAGE_LABELS[code]}
           </option>
         ))}
       </select>

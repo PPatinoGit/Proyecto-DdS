@@ -1,4 +1,7 @@
 {
+  "functions": {
+    "api/emails/send.ts": { "maxDuration": 30 }
+  },
   "rewrites": [
     { "source": "/login", "destination": "/index.html" },
     { "source": "/admin", "destination": "/index.html" },

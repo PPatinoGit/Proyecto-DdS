@@ -40,6 +40,12 @@ const SECTIONS = [
     to: "/admin/voters",
   },
   {
+    id: "emails",
+    titleKey: "admin.sections.emails.title",
+    descriptionKey: "admin.sections.emails.description",
+    to: "/admin/emails",
+  },
+  {
     id: "questionnaires",
     titleKey: "admin.sections.questionnaires.title",
     descriptionKey: "admin.sections.questionnaires.description",

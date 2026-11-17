@@ -69,7 +69,7 @@ delegarse a distintas personas de la organización.
 | Usuarios | Catálogo fijo de administradores en `data/users.json` |
 | Autenticación | Usuario y contraseña (hash `scrypt`) + cookie `HttpOnly` |
 | Validación | Zod |
-| Correo | Resend o Nodemailer (SMTP) |
+| Correo | Resend (API HTTP, sin SDK) |
 
 > **Nota sobre Deno:** se evaluó usar Deno, pero Vercel no ofrece runtime de Deno y, desde
 > octubre de 2026, el equipo de Deno se unió a Cloudflare (el runtime queda en
@@ -85,11 +85,12 @@ delegarse a distintas personas de la organización.
 >
 > `data/users.json` · `db/schema.sql` · `scripts/hash-password.mjs` · `scripts/init-db.mjs` ·
 > `scripts/check-i18n.mjs` · `api/auth/login.ts` · `api/auth/logout.ts` · `api/auth/me.ts` ·
-> `api/elections/index.ts` · `api/elections/voters.ts` ·
-> `src/lib/{auth,db,users,api,auth-api,elections,elections-api,voters,voters-api,csv,session,types}.ts` ·
+> `api/elections/index.ts` · `api/elections/voters.ts` · `api/emails/config.ts` ·
+> `api/emails/send.ts` ·
+> `src/lib/{auth,db,users,api,auth-api,elections,elections-api,voters,voters-api,csv,session,types,emails,emails-api,tokens,email-template,email-limits,gender}.ts` ·
 > `src/hooks/useAuth.ts` · `src/components/auth/{AuthProvider,route-guards}` ·
 > `src/components/ui/{LanguageSwitcher,FullScreenLoader}` · `src/i18n/` ·
-> `src/pages/Login.tsx` · `src/pages/admin/{AdminHome,Elections,Voters}.tsx` · `src/App.tsx` ·
+> `src/pages/Login.tsx` · `src/pages/admin/{AdminHome,Elections,Voters,Emails}.tsx` · `src/App.tsx` ·
 > `src/main.tsx` · `vercel.json`
 
 ```
@@ -102,6 +103,9 @@ Proyecto DdS/
 │   ├── elections/
 │   │   ├── index.ts              # GET/POST /api/elections (listar / crear)
 │   │   └── voters.ts             # GET/POST /api/elections/voters (censo / importar CSV)
+│   ├── emails/
+│   │   ├── config.ts             # GET  /api/emails/config (proveedor / modo simulación)
+│   │   └── send.ts               # POST /api/emails/send (lote de correos o prueba)
 │   ├── vote/
 │   │   └── [token].ts            # emitir voto con link único
 │   └── questionnaires/
@@ -131,7 +135,7 @@ Proyecto DdS/
 │   │   ├── forms/                # inputs, validación
 │   │   └── ui/                   # LanguageSwitcher, FullScreenLoader, botones, tablas
 │   ├── pages/
-│   │   ├── admin/                # portal de administración (AdminHome, Elections, Voters)
+│   │   ├── admin/                # portal de administración (AdminHome, Elections, Voters, Emails)
 │   │   ├── vote/                 # flujo de votación
 │   │   ├── questionnaire/        # cuestionarios y delegación
 │   │   └── Login.tsx
@@ -141,6 +145,7 @@ Proyecto DdS/
 │   │   ├── ru.json
 │   │   ├── i18n-context.ts       # contexto + useI18n()
 │   │   ├── I18nProvider.tsx      # idioma actual y persistencia
+│   │   ├── language-labels.ts    # nombres de los idiomas (interfaz y correo)
 │   │   └── index.ts              # tipos, diccionarios y translate()
 │   ├── lib/
 │   │   ├── api.ts                # cliente HTTP (ApiError)
@@ -150,7 +155,13 @@ Proyecto DdS/
 │   │   ├── db.ts                 # cliente libSQL (archivo local o Turso)
 │   │   ├── elections.ts          # consultas de votaciones (servidor)
 │   │   ├── elections-api.ts      # llamadas tipadas a /api/elections
+│   │   ├── email-limits.ts       # límites del correo (cliente y servidor)
+│   │   ├── email-template.ts     # asunto, texto y HTML de cada correo
+│   │   ├── emails.ts             # envío con Resend y modo simulación (servidor)
+│   │   ├── emails-api.ts         # llamadas tipadas a /api/emails
+│   │   ├── gender.ts             # saludo según el género del CSV
 │   │   ├── session.ts            # usuario de la sesión en el servidor
+│   │   ├── tokens.ts             # tokens del link único (idempotentes)
 │   │   ├── types.ts              # tipos compartidos cliente/servidor
 │   │   ├── users.ts              # lectura de data/users.json
 │   │   ├── validation.ts         # esquemas Zod
@@ -324,6 +335,116 @@ ordenado por nombre, con la ponderación de cada votante.
 
 ---
 
+## Correos personalizados con adjuntos
+
+Cada votante recibe un correo propio: el saludo usa su nombre y su género, el mensaje se puede
+escribir en el idioma que elija el administrador y el correo lleva el **link único de votación**.
+Los archivos adjuntos viajan con el mensaje.
+
+| Método | Ruta | Respuesta |
+| --- | --- | --- |
+| `GET` | `/api/emails/config` | `200` con `{ configured, from, dryRun }` · `401` sin sesión |
+| `POST` | `/api/emails/send` | `200` con `{ sent, failed, dryRun, results }` · `400` códigos de validación · `404` `election_not_found` · `401` sin sesión |
+
+`GET /api/emails/config` solo informa si hay proveedor configurado, el remitente y si se está en
+modo simulación: la API key **nunca** sale del servidor.
+
+### Proveedor: Resend y modo simulación
+
+El envío usa la API HTTP de [Resend](https://resend.com) con un único `fetch`; no hay SDK ni
+dependencia nueva. Si `RESEND_API_KEY` o `MAIL_FROM` están vacíos, la aplicación entra en
+**modo simulación**: no se envía nada, el servidor registra el destinatario y la API responde
+`dryRun: true`. Así se puede probar y demostrar todo el flujo sin cuenta de correo. La página
+muestra un aviso mientras esté activo.
+
+| Variable | Para qué |
+| --- | --- |
+| `RESEND_API_KEY` | Clave de Resend. Vacía = modo simulación. |
+| `MAIL_FROM` | Remitente verificado en Resend, p. ej. `Votaciones <no-reply@midominio.org>`. |
+| `APP_URL` | URL pública para armar el link del voto. Opcional: en Vercel se usa el dominio del despliegue. |
+
+### Link único y tokens
+
+Al enviar el primer correo a un votante se crea su `ballot_token` (`24` bytes aleatorios en
+base64url, 32 caracteres) y el correo apunta a `/vote/<token>`. La clave única
+`(election_id, person_id)` de la tabla hace la operación **idempotente**: reenviar el correo
+mantiene el mismo link, así que el votante no acumula enlaces distintos.
+
+> La página `/vote/<token>` es el **siguiente bloque**. Hoy los tokens ya se generan y los links
+> se envían, pero esa ruta aún no existe; el rewrite está preparado en `vercel.json`.
+
+### Saludo por género
+
+El CSV acepta texto libre en `gender`, así que `src/lib/gender.ts` reconoce las formas
+habituales en español, inglés, francés, alemán y ruso (`female`, `F`, `mujer`, `femenino`,
+`Женский`, `male`, `M`, `hombre`, `мужчина`, …) y **cualquier otro valor** (vacío, `other`,
+texto desconocido) usa un saludo neutro. El texto se compara en minúsculas y sin acentos, pero
+la forma original también se comprueba: quitar diacríticos convierte `й` en `и` y rompería
+`женский`.
+
+En la plantilla, las tres opciones son claves de los diccionarios: `email.greeting.female`
+(«Estimada {name}»), `email.greeting.male` («Estimado {name}») y `email.greeting.neutral`
+(«Hola {name}»). El asunto y el mensaje por defecto también salen de los diccionarios y admiten
+`{name}` y `{title}`; si el administrador los deja vacíos se usan esos valores. El HTML escapa
+todo lo que viene del usuario (nombre, asunto, mensaje) y solo el link se inserta como `href`.
+
+### Adjuntos
+
+Los archivos se leen en el navegador y viajan como **base64 dentro del JSON**, porque Vercel no
+tiene disco escribible y no se quiere depender de un almacenamiento externo. No se guardan en
+ningún sitio: viven lo que dura la petición.
+
+| Límite | Valor |
+| --- | --- |
+| Archivos por correo | 5 |
+| Tamaño por archivo | 1,5 MB (1 500 000 bytes) |
+| Tamaño total | 3 MB (3 000 000 bytes) |
+| Asunto | 200 caracteres |
+| Mensaje | 5 000 caracteres |
+
+El navegador valida antes de enviar (y muestra el error en el idioma activo); la API vuelve a
+validar el tamaño decodificado y rechaza base64 malformado. El nombre del archivo se sanea
+(se quitan rutas y caracteres de control) porque es metadato que se muestra al destinatario.
+Los límites viven en `src/lib/email-limits.ts`, compartido por cliente y servidor.
+
+### Envío por lotes y resultados
+
+La página divide el censo en lotes de 6 destinatarios (`EMAIL_CHUNK_SIZE`) y el servidor envía
+hasta 3 correos en paralelo por petición. Así cada invocación queda corta (`maxDuration: 30` en
+`vercel.json`), la barra de progreso avanza de verdad y un destinatario con error no cancela al
+resto. La respuesta incluye `results` con `personId`, `email`, `status` (`sent` / `failed`) y un
+`code` estable (`rate_limited`, `provider_error`, `network_error`, `timeout`) que la interfaz
+traduce.
+
+Antes de cualquier envío real se comprueba que **todos** los ids pertenezcan al censo de esa
+votación: si uno no pertenece, se rechaza el lote completo con `invalid_recipients` y no se crea
+ningún token. El botón **Enviar prueba a mí** manda un único correo al administrador con el
+prefijo traducido `[Prueba]` / `[Test]` / `[Тест]` y una nota en lugar del link real.
+
+```bash
+# ¿hay proveedor configurado?
+curl -s -b /tmp/dds-cookies.txt http://localhost:3000/api/emails/config
+
+# enviar a dos votantes del censo (ids de /api/elections/voters)
+curl -s -b /tmp/dds-cookies.txt -X POST http://localhost:3000/api/emails/send \
+  -H "content-type: application/json" \
+  -d '{"electionId":1,"language":"es","subject":null,"message":null,"attachments":[],"personIds":[1,2],"test":false}'
+
+# correo de prueba al administrador, con un adjunto
+curl -s -b /tmp/dds-cookies.txt -X POST http://localhost:3000/api/emails/send \
+  -H "content-type: application/json" \
+  -d '{"electionId":1,"language":"es","subject":"Hola {name}","message":"Adjunto el acta.","attachments":[{"name":"acta.txt","contentType":"text/plain","data":"QWN0YSBkZSBsYSBzZXNpw7NuLg=="}],"personIds":[],"test":true}'
+```
+
+En la interfaz: `/admin` → tarjeta **Correos** (`/admin/emails`), o el enlace **Correos** de cada
+fila en `/admin/elections`, que abre la página con la votación preseleccionada. Allí se elige la
+votación (con su número de votantes), el idioma del correo (por defecto, el de la interfaz), un
+asunto y un mensaje opcionales, y los adjuntos. El resumen final muestra enviados y fallidos, la
+lista de destinatarios con error y el aviso de simulación cuando corresponde. Si la votación no
+tiene censo, la página enlaza directo a la importación de votantes.
+
+---
+
 ## Internacionalización (es / en / ru)
 
 Sin librerías de i18n y sin APIs externas de traducción: los textos viven en el repositorio.
@@ -408,10 +529,11 @@ cp .env.example .env
 DATABASE_URL=file:./data/dev.db
 DATABASE_AUTH_TOKEN=
 SESSION_SECRET=<32 bytes aleatorios en hex>
-SMTP_HOST=
-SMTP_USER=
-SMTP_PASS=
+# Resend (https://resend.com). Vacías = modo simulación: no se envía nada.
+RESEND_API_KEY=
 MAIL_FROM=
+# URL pública para los links de voto (opcional; en Vercel se usa el dominio del despliegue)
+APP_URL=
 ```
 
 `.env` **no** se versiona. Para generar `SESSION_SECRET`:
@@ -461,8 +583,10 @@ npm run i18n:check  # claves, valores y placeholders de los tres idiomas
 Flujo en el navegador (con `vercel dev`): `/` redirige a `/admin`; sin sesión, la guardia
 manda a `/login`; al entrar con las credenciales demo se llega al panel; al recargar se
 restaura la sesión con `/api/auth/me`; «Cerrar sesión» vuelve a `/login`. Desde el panel, la
-tarjeta **Votaciones** abre `/admin/elections`, donde se crean y listan borradores, y la tarjeta
-**Votantes** abre `/admin/voters`, donde se importa el censo de una votación desde CSV.
+tarjeta **Votaciones** abre `/admin/elections`, donde se crean y listan borradores, la tarjeta
+**Votantes** abre `/admin/voters`, donde se importa el censo de una votación desde CSV, y la
+tarjeta **Correos** abre `/admin/emails`, donde se compone el mensaje, se adjuntan archivos y se
+envían los links únicos (en modo simulación si no hay proveedor configurado).
 
 Comprobar el ciclo de sesión completo por HTTP:
 
@@ -521,6 +645,11 @@ código funciona sin cambios.
 | 2026-11-16 | Votaciones nuevas en `draft` y fechas opcionales | Crear una votación no debe publicarla ni enviar links todavía. Las fechas pueden definirse después; `closesAt` debe ser posterior a `opensAt` y ambas se guardan en UTC para que no dependan de la zona del servidor. |
 | 2026-11-16 | Un único parser de CSV para cliente y servidor | La vista previa usa exactamente la misma validación que la importación, así que no puede mostrar «válido» para un archivo que la API rechazará. Es TypeScript puro, sin APIs de Node ni del DOM. |
 | 2026-11-16 | Importación atómica con `batch` de libSQL | `person` se reutiliza por `email` y `voter_roll` por `(election_id, person_id)`. Todo se escribe en una sola transacción: o entran todas las filas o ninguna, y reimportar actualiza en vez de duplicar. |
+| 2026-11-16 | Resend por HTTP, sin SDK | Un `fetch` basta y evita una dependencia en el bundle de la función. El `.env.example` pasa de `SMTP_*` a `RESEND_API_KEY` + `MAIL_FROM`. Si faltan, la aplicación funciona en modo simulación (`dryRun`), lo que permite probar y demostrar el flujo sin cuenta. |
+| 2026-11-16 | El token del link se crea al enviar el correo, no al importar el censo | Un CSV de miles de filas no debe generar tokens de votantes que quizá nunca reciban el correo. Además, `UNIQUE (election_id, person_id)` + `DO NOTHING` hacen que reenviar mantenga el mismo link, sin invalidar el que el votante ya tiene. |
+| 2026-11-16 | Adjuntos en base64 dentro del JSON, sin almacenarlos | Vercel no tiene disco escribible y no se quiere añadir un bucket. El archivo viaja con la petición y desaparece al terminar. El coste es que el cuerpo crece ~33 %, de ahí los límites (5 archivos, 1,5 MB cada uno, 3 MB en total) y los lotes de 6 destinatarios. |
+| 2026-11-16 | El envío se parte en lotes desde el cliente | Cada invocación de Vercel dura 30 s como máximo y Resend limita el ritmo. Lotes de 6 con 3 envíos en paralelo mantienen la función corta, permiten progreso real y aíslan los fallos por destinatario. |
+| 2026-11-16 | Saludo por género con lista de formas conocidas y respaldo neutro | El CSV admite texto libre. En lugar de adivinar, se reconocen las formas habituales en cinco idiomas y cualquier otro valor usa «Hola». La comparación conserva la forma original porque quitar diacríticos NFD rompe la `й` del ruso. |
 
 ---
 
@@ -536,7 +665,7 @@ código funciona sin cambios.
 - [x] Rutas protegidas y panel inicial (`/login`, `/admin`)
 - [x] Portal de administración: crear y listar votaciones (`/admin/elections`)
 - [x] Carga masiva de votantes por CSV con vista previa (`/admin/voters`)
-- [ ] Envío de correos con adjuntos
-- [ ] Votación por link único con ponderación
+- [x] Envío de correos personalizados con adjuntos y link único (`/admin/emails`)
+- [ ] Página de votación por link único con ponderación (`/vote/<token>`)
 - [ ] Cuestionarios con categorías y delegación
 - [ ] Endurecimiento (rate limiting, auditoría, pruebas)

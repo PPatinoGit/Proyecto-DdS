@@ -45,6 +45,42 @@ export async function listVoters(electionId: number): Promise<Voter[]> {
   return result.rows.map((row) => toVoter(row as unknown as VoterRow));
 }
 
+export type RosterPerson = {
+  personId: number;
+  email: string;
+  name: string;
+  gender: string | null;
+};
+
+/**
+ Only the requested people who really belong to the election.
+ The send endpoint compares the length with the request: a mismatch means the
+ caller tried to email somebody outside the roster and the whole chunk fails.
+*/
+export async function findRosterPeople(
+  electionId: number,
+  personIds: number[],
+): Promise<RosterPerson[]> {
+  if (personIds.length === 0) return [];
+
+  const placeholders = personIds.map(() => "?").join(", ");
+  const result = await db.execute({
+    sql: `SELECT p.id, p.email, p.full_name, p.gender
+          FROM voter_roll vr
+          JOIN person p ON p.id = vr.person_id
+          WHERE vr.election_id = ? AND p.id IN (${placeholders})
+          ORDER BY p.id`,
+    args: [electionId, ...personIds],
+  });
+
+  return result.rows.map((row) => ({
+    personId: Number(row.id),
+    email: String(row.email),
+    name: String(row.full_name),
+    gender: row.gender === null ? null : String(row.gender),
+  }));
+}
+
 /**
  Imports a validated CSV in a single write batch.
 

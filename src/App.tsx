@@ -10,6 +10,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { RequireAuth, RequireGuest } from "./components/auth/route-guards";
 import { AdminHome } from "./pages/admin/AdminHome";
 import { Elections } from "./pages/admin/Elections";
+import { Emails } from "./pages/admin/Emails";
 import { Voters } from "./pages/admin/Voters";
 import { Login } from "./pages/Login";
 
@@ -24,6 +25,7 @@ export function App() {
         <Route path="/admin" element={<AdminHome />} />
         <Route path="/admin/elections" element={<Elections />} />
         <Route path="/admin/voters" element={<Voters />} />
+        <Route path="/admin/emails" element={<Emails />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/admin" replace />} />

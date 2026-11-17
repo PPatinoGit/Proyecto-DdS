@@ -274,10 +274,16 @@ export function Elections() {
                       {t(STATUS_KEYS[election.status])}
                     </span>
                     <Link
-                      className="elections__voters-link"
+                      className="elections__action-link"
                       to={`/admin/voters?election=${election.id}`}
                     >
                       {t("admin.elections.votersLink")}
+                    </Link>
+                    <Link
+                      className="elections__action-link"
+                      to={`/admin/emails?election=${election.id}`}
+                    >
+                      {t("admin.elections.emailsLink")}
                     </Link>
                   </div>
                 </li>
