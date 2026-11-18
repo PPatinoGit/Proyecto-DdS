@@ -63,3 +63,55 @@ export const emailSendSchema = z
   });
 
 export type EmailSendPayload = z.infer<typeof emailSendSchema>;
+
+/*
+ Ballot definition: the admin sends the complete list of motions for one
+ election. Replacing everything in one request keeps the editor simple and
+ lets the server write it in a single transaction.
+*/
+const motionOptionInputSchema = z.string().trim().min(1).max(120);
+
+const motionInputSchema = z
+  .object({
+    title: z.string().trim().min(1).max(200),
+    options: z.array(motionOptionInputSchema).min(2).max(8),
+  })
+  .refine(
+    ({ options }) => new Set(options.map((label) => label.toLocaleLowerCase())).size === options.length,
+    { message: "duplicate_option" },
+  );
+
+export const motionsInputSchema = z.object({
+  electionId: z.number().int().positive(),
+  motions: z.array(motionInputSchema).max(40),
+});
+
+export type MotionsInputPayload = z.infer<typeof motionsInputSchema>;
+
+/** Publishing and closing an election are explicit admin actions. */
+export const electionStatusSchema = z.object({
+  electionId: z.number().int().positive(),
+  status: z.enum(["open", "closed"]),
+});
+
+export type ElectionStatusPayload = z.infer<typeof electionStatusSchema>;
+
+/** One complete ballot: exactly one option chosen for every motion. */
+export const voteInputSchema = z
+  .object({
+    votes: z
+      .array(
+        z.object({
+          motionId: z.number().int().positive(),
+          optionId: z.number().int().positive(),
+        }),
+      )
+      .min(1)
+      .max(40),
+  })
+  .refine(
+    ({ votes }) => new Set(votes.map((vote) => vote.motionId)).size === votes.length,
+    { message: "duplicate_motion" },
+  );
+
+export type VoteInputPayload = z.infer<typeof voteInputSchema>;

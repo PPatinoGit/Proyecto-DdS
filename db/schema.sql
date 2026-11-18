@@ -31,6 +31,15 @@ CREATE TABLE IF NOT EXISTS motion (
   position    INTEGER NOT NULL
 );
 
+-- Each motion defines its own options (free text chosen by the admin).
+CREATE TABLE IF NOT EXISTS motion_option (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  motion_id  INTEGER NOT NULL REFERENCES motion(id) ON DELETE CASCADE,
+  label      TEXT NOT NULL,
+  position   INTEGER NOT NULL,
+  UNIQUE (motion_id, position)
+);
+
 CREATE TABLE IF NOT EXISTS ballot_token (
   token       TEXT PRIMARY KEY,
   election_id INTEGER NOT NULL REFERENCES election(id) ON DELETE CASCADE,

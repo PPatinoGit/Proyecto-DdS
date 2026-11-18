@@ -31,6 +31,9 @@
     "src/lib/voters.ts",
     "src/lib/tokens.ts",
     "src/lib/emails.ts",
-    "src/lib/validation.ts"
+    "src/lib/validation.ts",
+    "src/lib/voting.ts",
+    "src/lib/motions.ts",
+    "src/lib/votes.ts"
   ]
 }

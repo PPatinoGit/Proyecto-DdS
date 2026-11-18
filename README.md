@@ -83,15 +83,16 @@ delegarse a distintas personas de la organización.
 > Estructura **completa prevista**; las carpetas vacías son bloques futuros. Implementado
 > hasta ahora:
 >
-> `data/users.json` · `db/schema.sql` · `scripts/hash-password.mjs` · `scripts/init-db.mjs` ·
+> `data/users.json` · `db/schema.sql` · `db/migrations/001_motion_options.sql` ·
+> `scripts/hash-password.mjs` · `scripts/init-db.mjs` · `scripts/migrate.mjs` ·
 > `scripts/check-i18n.mjs` · `api/auth/login.ts` · `api/auth/logout.ts` · `api/auth/me.ts` ·
-> `api/elections/index.ts` · `api/elections/voters.ts` · `api/emails/config.ts` ·
-> `api/emails/send.ts` ·
-> `src/lib/{auth,db,users,api,auth-api,elections,elections-api,voters,voters-api,csv,session,types,emails,emails-api,tokens,email-template,email-limits,gender}.ts` ·
+> `api/elections/{index,voters,motions,status,results}.ts` · `api/emails/{config,send}.ts` ·
+> `api/vote/[token].ts` ·
+> `src/lib/{auth,db,users,api,auth-api,elections,elections-api,voters,voters-api,csv,session,types,emails,emails-api,tokens,email-template,email-limits,gender,voting,motions,votes,motions-api,results-api,vote-api}.ts` ·
 > `src/hooks/useAuth.ts` · `src/components/auth/{AuthProvider,route-guards}` ·
 > `src/components/ui/{LanguageSwitcher,FullScreenLoader}` · `src/i18n/` ·
-> `src/pages/Login.tsx` · `src/pages/admin/{AdminHome,Elections,Voters,Emails}.tsx` · `src/App.tsx` ·
-> `src/main.tsx` · `vercel.json`
+> `src/pages/Login.tsx` · `src/pages/admin/{AdminHome,Elections,Voters,Emails,Ballots,Results}.tsx` ·
+> `src/pages/vote/VotePage.tsx` · `src/App.tsx` · `src/main.tsx` · `vercel.json`
 
 ```
 Proyecto DdS/
@@ -102,12 +103,15 @@ Proyecto DdS/
 │   │   └── me.ts                 # GET  /api/auth/me
 │   ├── elections/
 │   │   ├── index.ts              # GET/POST /api/elections (listar / crear)
-│   │   └── voters.ts             # GET/POST /api/elections/voters (censo / importar CSV)
+│   │   ├── voters.ts             # GET/POST /api/elections/voters (censo / importar CSV)
+│   │   ├── motions.ts            # GET/POST /api/elections/motions (papeleta / guardar)
+│   │   ├── status.ts             # POST /api/elections/status (abrir / cerrar)
+│   │   └── results.ts            # GET  /api/elections/results (resultados ponderados)
 │   ├── emails/
 │   │   ├── config.ts             # GET  /api/emails/config (proveedor / modo simulación)
 │   │   └── send.ts               # POST /api/emails/send (lote de correos o prueba)
 │   ├── vote/
-│   │   └── [token].ts            # emitir voto con link único
+│   │   └── [token].ts            # GET/POST /api/vote/<token> (leer papeleta / votar)
 │   └── questionnaires/
 │       ├── index.ts
 │       └── questions/
@@ -119,14 +123,16 @@ Proyecto DdS/
 │   └── dev.db                    # SQLite local (NO se versiona)
 ├── db/
 │   ├── schema.sql                # esquema inicial (dialecto SQLite)
-│   └── migrations/               # migraciones versionadas
+│   └── migrations/
+│       └── 001_motion_options.sql# opciones libres por moción
 ├── docs/
 │   ├── decisiones.md             # decisiones técnicas y su justificación
 │   └── modelo-datos.md           # detalle del modelo de datos
 ├── scripts/
 │   ├── check-i18n.mjs            # valida claves, valores y placeholders
 │   ├── hash-password.mjs         # genera hashes para data/users.json
-│   └── init-db.mjs               # aplica db/schema.sql
+│   ├── init-db.mjs               # aplica db/schema.sql + migraciones
+│   └── migrate.mjs               # aplica solo migraciones pendientes
 ├── public/                       # assets estáticos
 ├── src/                          # frontend
 │   ├── components/
@@ -135,8 +141,8 @@ Proyecto DdS/
 │   │   ├── forms/                # inputs, validación
 │   │   └── ui/                   # LanguageSwitcher, FullScreenLoader, botones, tablas
 │   ├── pages/
-│   │   ├── admin/                # portal de administración (AdminHome, Elections, Voters, Emails)
-│   │   ├── vote/                 # flujo de votación
+│   │   ├── admin/                # AdminHome, Elections, Voters, Emails, Ballots, Results
+│   │   ├── vote/                 # VotePage (/vote/<token>)
 │   │   ├── questionnaire/        # cuestionarios y delegación
 │   │   └── Login.tsx
 │   ├── i18n/
@@ -166,7 +172,13 @@ Proyecto DdS/
 │   │   ├── users.ts              # lectura de data/users.json
 │   │   ├── validation.ts         # esquemas Zod
 │   │   ├── voters.ts             # censo e importación (servidor)
-│   │   └── voters-api.ts         # llamadas tipadas a /api/elections/voters
+│   │   ├── voters-api.ts         # llamadas tipadas a /api/elections/voters
+│   │   ├── voting.ts             # reglas de la ventana (servidor)
+│   │   ├── motions.ts            # papeleta: mociones y opciones (servidor)
+│   │   ├── votes.ts              # voto atómico y resultados (servidor)
+│   │   ├── motions-api.ts        # papeleta, abrir/cerrar (cliente)
+│   │   ├── results-api.ts        # resultados ponderados (cliente)
+│   │   └── vote-api.ts           # llamadas públicas a /api/vote/<token>
 │   ├── hooks/
 │   │   └── useAuth.ts            # contexto de sesión + hook
 │   ├── App.tsx                   # tabla de rutas
@@ -370,8 +382,70 @@ base64url, 32 caracteres) y el correo apunta a `/vote/<token>`. La clave única
 `(election_id, person_id)` de la tabla hace la operación **idempotente**: reenviar el correo
 mantiene el mismo link, así que el votante no acumula enlaces distintos.
 
-> La página `/vote/<token>` es el **siguiente bloque**. Hoy los tokens ya se generan y los links
-> se envían, pero esa ruta aún no existe; el rewrite está preparado en `vercel.json`.
+### De la papeleta al voto
+
+El ciclo ya está completo:
+
+1. `/admin/elections` → enlace **Papeleta** (`/admin/ballots?election=1`): el administrador
+   crea las mociones y escribe sus opciones en texto libre (de 2 a 8 opciones por moción,
+   hasta 40 mociones). Se guarda todo de una vez.
+2. En ese mismo editor, **Abrir votación** publica (`draft` → `open`) y **Cerrar votación**
+   la cierra (`open` → `closed`). No hay vuelta atrás a `draft`.
+3. `/admin/emails` envía los correos con el link `/vote/<token>`.
+4. `/vote/<token>` muestra la papeleta: el votante elige **una opción por moción** y envía.
+   El enlace queda consumido.
+5. `/admin/results?election=1` muestra la participación y los totales ponderados.
+
+| Método | Ruta | Respuesta |
+| --- | --- | --- |
+| `GET` | `/api/elections/motions?electionId=1` | `200` con `{ election, motions, locked }` · `401` sin sesión |
+| `POST` | `/api/elections/motions` | `200` con `{ motions }` · `400` `invalid_input` · `404` `election_not_found` · `409` `votes_exist` |
+| `POST` | `/api/elections/status` | `200` con `{ election }` · `400` `invalid_input` · `404` `election_not_found` |
+| `GET` | `/api/elections/results?electionId=1` | `200` con `{ election, turnout, results }` · `401` sin sesión |
+| `GET` | `/api/vote/<token>` | `200` con `{ ballot }` · `404` `invalid_token` |
+| `POST` | `/api/vote/<token>` | `201` con `{ receipt }` · `400` `invalid_input` / `invalid_choice` / `incomplete_ballot` · `403` `draft` / `upcoming` / `closed` · `404` `invalid_token` · `409` `already_voted` |
+
+Las tres primeras rutas son de administrador. Las dos últimas son **públicas**: el token de la
+URL es la credencial y no hace falta iniciar sesión.
+
+**Ventana de votación.** `windowFor` (`src/lib/voting.ts`) calcula el estado en cada petición:
+`draft` (sin publicar), `upcoming` (antes de `opensAt`), `open` y `closed` (después de
+`closesAt` o tras pulsar **Cerrar**). Solo `open` acepta votos: las fechas se comprueban en el
+servidor, no únicamente en la interfaz.
+
+**Papeleta congelada.** En cuanto existe el primer voto, `POST /api/elections/motions`
+responde `409 votes_exist`: cambiar una opción después de votarla cambiaría el significado de
+ese voto. `GET` sigue disponible y devuelve `locked: true`.
+
+**Voto atómico y de un solo uso.** `castVote` valida token, ventana, uso previo y que cada
+opción pertenezca a la papeleta congelada. Después marca `used_at` y escribe todas las filas
+de `vote` en **una transacción**. El índice `UNIQUE (motion_id, person_id)` es la segunda línea
+de defensa si dos peticiones llegan a la vez; en ese caso la API responde `already_voted` (409).
+No se puede enviar una papeleta parcial: hay que elegir una opción en **cada** moción.
+
+**Resultados.** `vote.choice` guarda la etiqueta elegida como instantánea histórica y
+`weight_at_cast` el peso del censo en el momento de votar. Los resultados son solo agregados
+(participación, votos y pesos por opción): ningún endpoint revela quién votó qué. La cuota se
+calcula con el peso, no solo con el número de votos.
+
+Tras votar, `/vote/<token>` muestra un recibo con las opciones elegidas y el peso aplicado. Si se
+vuelve a abrir el mismo enlace, `GET /api/vote/<token>` devuelve ese recibo y la página indica
+**Ya has votado**, en el idioma activo.
+
+```bash
+# papeleta editable y estado (con cookie de administrador)
+curl -s -b /tmp/dds-cookies.txt -X POST http://localhost:3000/api/elections/motions \
+  -H "content-type: application/json" \
+  -d '{"electionId":1,"motions":[{"title":"¿Aprobar?","options":["Sí","No","Abstención"]}]}'
+
+curl -s -b /tmp/dds-cookies.txt -X POST http://localhost:3000/api/elections/status \
+  -H "content-type: application/json" -d '{"electionId":1,"status":"open"}'
+
+# votar con el link recibido por correo (sin cookie)
+curl -s -X POST "http://localhost:3000/api/vote/$TOKEN" \
+  -H "content-type: application/json" \
+  -d '{"votes":[{"motionId":1,"optionId":2}]}'
+```
 
 ### Saludo por género
 
@@ -450,6 +524,7 @@ tiene censo, la página enlaza directo a la importación de votantes.
 Sin librerías de i18n y sin APIs externas de traducción: los textos viven en el repositorio.
 
 - `src/i18n/es.json` es la **fuente de verdad**. De sus claves se deriva el tipo `TranslationKey`.
+  Hoy hay **258 claves** traducidas en los tres idiomas.
 - `en.json` y `ru.json` deben contener todas las claves de `es.json`. Si falta una,
   `npm run build` falla con `TS2741`; un typo en `t("...")` también es un error de compilación.
 - Los componentes solo usan `t("clave")`; **nunca** concatenan frases. Los errores del backend
@@ -478,7 +553,8 @@ resolverán con `Intl.PluralRules`; fechas y números siempre con `Intl.DateTime
 | `person` | Votantes cargados por CSV (email único, nombre, fecha de nacimiento, género). |
 | `election` | Votación: título, estado, apertura y cierre. |
 | `voter_roll` | Quién vota en cada votación y con qué **ponderación**. |
-| `motion` | Mociones de una votación. |
+| `motion` | Mociones de una votación, ordenadas por `position`. |
+| `motion_option` | Opciones en texto libre de cada moción (de 2 a 8). |
 | `ballot_token` | Token del **link único**; `used_at` marca el voto ya emitido. |
 | `vote` | Voto emitido, con el peso guardado al momento de votar. |
 | `questionnaire` | Cuestionario y su dueño inicial. |
@@ -490,7 +566,7 @@ resolverán con `Intl.PluralRules`; fechas y números siempre con `Intl.DateTime
 
 ### Invariantes del sistema
 
-Estas tres reglas se garantizan en la base de datos, no solo en la aplicación:
+Estas reglas se garantizan en la base de datos y en la aplicación, no solo en la interfaz:
 
 1. **Un voto por persona:** `UNIQUE (motion_id, person_id)` en `vote`, más el marcado de
    `ballot_token.used_at` dentro de la misma transacción.
@@ -498,6 +574,12 @@ Estas tres reglas se garantizan en la base de datos, no solo en la aplicación:
    un `UPDATE` atómico que registra además el cambio en `delegation_log`.
 3. **Ponderación histórica:** `vote.weight_at_cast` guarda el peso al momento de votar, para
    que cambiar pesos después no altere resultados ya emitidos.
+4. **Papeleta congelada:** en cuanto existe el primer voto, la API rechaza modificar
+   `motion` / `motion_option` (`409 votes_exist`), de modo que cambiar una opción no altere
+   el significado de los votos ya emitidos. `vote.choice` conserva la etiqueta elegida.
+5. **Solo la ventana abierta acepta votos:** estado `open` y fechas dentro del rango se
+   comprueban en el servidor en cada petición; el botón **Abrir/Cerrar** de la interfaz no es
+   la única barrera.
 
 ---
 
@@ -546,8 +628,18 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 ```bash
 mkdir -p data
-node scripts/init-db.mjs    # aplica db/schema.sql
+npm run db:init    # aplica db/schema.sql + las migraciones pendientes
 ```
+
+Cuando la base ya existe y llega un cambio de esquema (por ejemplo la migración
+`db/migrations/001_motion_options.sql`, que añadió las opciones libres por moción), basta con
+aplicar solo las migraciones pendientes —sin recrear ni borrar datos—:
+
+```bash
+npm run db:migrate
+```
+
+Ambos scripts son idempotentes: se puede repetir su ejecución sin duplicar tablas ni filas.
 
 ### Credenciales de prueba
 
@@ -583,10 +675,23 @@ npm run i18n:check  # claves, valores y placeholders de los tres idiomas
 Flujo en el navegador (con `vercel dev`): `/` redirige a `/admin`; sin sesión, la guardia
 manda a `/login`; al entrar con las credenciales demo se llega al panel; al recargar se
 restaura la sesión con `/api/auth/me`; «Cerrar sesión» vuelve a `/login`. Desde el panel, la
-tarjeta **Votaciones** abre `/admin/elections`, donde se crean y listan borradores, la tarjeta
-**Votantes** abre `/admin/voters`, donde se importa el censo de una votación desde CSV, y la
-tarjeta **Correos** abre `/admin/emails`, donde se compone el mensaje, se adjuntan archivos y se
-envían los links únicos (en modo simulación si no hay proveedor configurado).
+tarjeta **Votaciones** abre `/admin/elections`, donde se crean y listan borradores. Cada fila
+tiene enlaces a **Votantes** (`/admin/voters`, importación del censo por CSV), **Correos**
+(`/admin/emails`, mensaje, adjuntos y envío de links únicos — en modo simulación si no hay
+proveedor), **Papeleta** y **Resultados**, además del botón **Abrir/Cerrar** la votación.
+
+El ciclo completo en el navegador sería:
+
+1. En `/admin/elections` crear una votación (nace en `draft`).
+2. En `/admin/ballots?election=1` añadir mociones con sus opciones, guardar y pulsar
+   **Abrir votación**.
+3. En `/admin/voters?election=1` importar el CSV del censo y revisar la vista previa.
+4. En `/admin/emails?election=1` enviar los correos; cada votante recibe su link `/vote/<token>`.
+5. Abrir ese link en una ventana **sin sesión de administrador**: `/vote/<token>` muestra la
+   papeleta, se elige una opción por moción y se envía; la página muestra el recibo y, al
+   recargar, «Ya has votado». El idioma se puede cambiar con el selector (es / en / ru).
+6. En `/admin/results?election=1` consultar la participación y los totales ponderados por
+   opción, con el mismo selector de idioma.
 
 Comprobar el ciclo de sesión completo por HTTP:
 
@@ -650,6 +755,12 @@ código funciona sin cambios.
 | 2026-11-16 | Adjuntos en base64 dentro del JSON, sin almacenarlos | Vercel no tiene disco escribible y no se quiere añadir un bucket. El archivo viaja con la petición y desaparece al terminar. El coste es que el cuerpo crece ~33 %, de ahí los límites (5 archivos, 1,5 MB cada uno, 3 MB en total) y los lotes de 6 destinatarios. |
 | 2026-11-16 | El envío se parte en lotes desde el cliente | Cada invocación de Vercel dura 30 s como máximo y Resend limita el ritmo. Lotes de 6 con 3 envíos en paralelo mantienen la función corta, permiten progreso real y aíslan los fallos por destinatario. |
 | 2026-11-16 | Saludo por género con lista de formas conocidas y respaldo neutro | El CSV admite texto libre. En lugar de adivinar, se reconocen las formas habituales en cinco idiomas y cualquier otro valor usa «Hola». La comparación conserva la forma original porque quitar diacríticos NFD rompe la `й` del ruso. |
+| 2026-11-17 | Opciones de moción en su propia tabla (`motion_option`) | El texto de las opciones es libre y distinto en cada moción; separarlas permite reordenar y validar (2–8 opciones, sin duplicados) sin tocar la estructura de `motion`. |
+| 2026-11-17 | Papeleta congelada tras el primer voto | Cambiar una opción ya votada cambiaría el significado de ese voto. La API devuelve `409 votes_exist` y `vote.choice` guarda la etiqueta elegida como instantánea histórica. |
+| 2026-11-17 | Voto atómico en una transacción, con `UNIQUE` como segunda defensa | `used_at` y todas las filas de `vote` se escriben juntos; si dos peticiones llegan a la vez, `UNIQUE (motion_id, person_id)` impide el doble voto y se responde `already_voted` (409). |
+| 2026-11-17 | Ventana calculada en el servidor con botones Abrir/Cerrar | `windowFor` deriva `draft`/`upcoming`/`open`/`closed` del estado y las fechas en cada petición; `closed` es final. Así el frontend no es la única barrera y las fechas no dependen de la hora del votante. |
+| 2026-11-17 | Resultados solo agregados y ponderados | `weight_at_cast` congela el peso y los totals se calculan por opción; ningún endpoint revela quién votó qué, pero la cuota refleja la ponderación del censo. |
+| 2026-11-17 | Migraciones versionadas para cambios de esquema | `db/migrations/001_motion_options.sql` permite actualizar una base existente con `npm run db:migrate` sin recrear datos; `db:init` aplica esquema + migraciones desde cero. |
 
 ---
 
@@ -658,7 +769,7 @@ código funciona sin cambios.
 - [x] Definición de requisitos
 - [x] Definición de stack y modelo de datos
 - [x] Configuración del proyecto (React + TypeScript + Vite)
-- [x] Esquema de base de datos (`db/schema.sql`, 12 tablas)
+- [x] Esquema de base de datos (`db/schema.sql`, 13 tablas + migración `001_motion_options`)
 - [x] Autenticación en el backend (`login`, `me`, `logout` + cookie firmada)
 - [x] Layout responsivo e internacionalización (es / en / ru)
 - [x] Autenticación en el frontend (formulario, guardias de ruta, `useAuth`)
@@ -666,6 +777,7 @@ código funciona sin cambios.
 - [x] Portal de administración: crear y listar votaciones (`/admin/elections`)
 - [x] Carga masiva de votantes por CSV con vista previa (`/admin/voters`)
 - [x] Envío de correos personalizados con adjuntos y link único (`/admin/emails`)
-- [ ] Página de votación por link único con ponderación (`/vote/<token>`)
+- [x] Página de votación por link único con ponderación (`/vote/<token>`)
+- [x] Papeleta editable, apertura/cierre y resultados (`/admin/ballots`, `/admin/results`)
 - [ ] Cuestionarios con categorías y delegación
 - [ ] Endurecimiento (rate limiting, auditoría, pruebas)

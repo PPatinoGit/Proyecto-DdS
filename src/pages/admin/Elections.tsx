@@ -13,10 +13,11 @@ import { useI18n } from "../../i18n/i18n-context";
 import type { TranslateValues, TranslationKey } from "../../i18n";
 import { LanguageSwitcher } from "../../components/ui/LanguageSwitcher";
 import { createElectionRequest, fetchElections } from "../../lib/elections-api";
+import { setElectionStatusRequest } from "../../lib/motions-api";
 import type { Election, ElectionStatus } from "../../lib/types";
 import "./Elections.css";
 
-type Context = "load" | "create";
+type Context = "load" | "create" | "status";
 
 type PageError = {
   key: TranslationKey;
@@ -52,6 +53,9 @@ function describeError(error: unknown, context: Context): PageError {
   if (context === "load") {
     return { key: "admin.elections.errors.load" };
   }
+  if (context === "status") {
+    return { key: "admin.elections.statusError" };
+  }
   return { key: "admin.elections.errors.unexpectedCode", values: { code: error.code } };
 }
 
@@ -71,6 +75,9 @@ export function Elections() {
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<PageError | null>(null);
   const [created, setCreated] = useState(false);
+  /* Open/close is a separate action; track which row is busy. */
+  const [changingId, setChangingId] = useState<number | null>(null);
+  const [statusError, setStatusError] = useState<PageError | null>(null);
 
   const dateFormatter = new Intl.DateTimeFormat(language, {
     dateStyle: "medium",
@@ -145,6 +152,29 @@ export function Elections() {
       setFormError(describeError(error, "create"));
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  /** Publishes or closes one election. "closed" is final, so it has no button. */
+  async function changeStatus(election: Election, status: "open" | "closed") {
+    if (changingId !== null) return;
+
+    setChangingId(election.id);
+    setStatusError(null);
+
+    try {
+      const { election: updated } = await setElectionStatusRequest(election.id, status);
+      setElections((list) =>
+        list.map((item) => (item.id === updated.id ? updated : item)),
+      );
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        await logout();
+        return;
+      }
+      setStatusError(describeError(error, "status"));
+    } finally {
+      setChangingId(null);
     }
   }
 
@@ -233,6 +263,12 @@ export function Elections() {
             </div>
           )}
 
+          {statusError !== null && (
+            <p className="elections__error" role="alert">
+              {t(statusError.key, statusError.values)}
+            </p>
+          )}
+
           {loading && <p className="elections__hint">{t("common.loading")}</p>}
 
           {!loading && loadError === null && elections.length === 0 && (
@@ -285,6 +321,37 @@ export function Elections() {
                     >
                       {t("admin.elections.emailsLink")}
                     </Link>
+                    <Link
+                      className="elections__action-link"
+                      to={`/admin/ballots?election=${election.id}`}
+                    >
+                      {t("admin.elections.ballotLink")}
+                    </Link>
+                    <Link
+                      className="elections__action-link"
+                      to={`/admin/results?election=${election.id}`}
+                    >
+                      {t("admin.elections.resultsLink")}
+                    </Link>
+                    {election.status !== "closed" && (
+                      <button
+                        type="button"
+                        className="elections__action-button"
+                        disabled={changingId !== null}
+                        onClick={() =>
+                          void changeStatus(
+                            election,
+                            election.status === "open" ? "closed" : "open",
+                          )
+                        }
+                      >
+                        {t(
+                          election.status === "open"
+                            ? "admin.elections.close"
+                            : "admin.elections.open",
+                        )}
+                      </button>
+                    )}
                   </div>
                 </li>
               ))}

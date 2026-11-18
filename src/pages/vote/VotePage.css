@@ -1,0 +1,257 @@
+/* Public voting page. Explicit colours keep it readable in dark mode. */
+
+.vote {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: clamp(1rem, 4vw, 2.5rem);
+  color-scheme: light;
+  background: #f4f6f9;
+  color: #1f2430;
+  text-align: left;
+}
+
+.vote__card {
+  width: min(100%, 42rem);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: clamp(1.1rem, 3vw, 2rem);
+  border-radius: 0.85rem;
+  background: #ffffff;
+  box-shadow: 0 10px 28px rgb(0 0 0 / 8%);
+}
+
+.vote__header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.vote__title {
+  margin: 0;
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #11141a;
+}
+
+.vote__election {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #11141a;
+  overflow-wrap: anywhere;
+}
+
+.vote__greeting {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #2f4fa8;
+}
+
+.vote__hint {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: #5b6472;
+}
+
+.vote__message {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.85rem 1rem;
+  border-radius: 0.6rem;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.vote__message p {
+  margin: 0;
+}
+
+.vote__message--error {
+  border-left: 4px solid #a11414;
+  background: #fdecec;
+  color: #8a0f0f;
+}
+
+.vote__message--info {
+  border-left: 4px solid #2f4fa8;
+  background: #eef2ff;
+  color: #2f4fa8;
+}
+
+.vote__retry {
+  align-self: flex-start;
+  padding: 0.35rem 0.7rem;
+  border: 1px solid currentColor;
+  border-radius: 0.4rem;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.vote__form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.vote__motion {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0.9rem 1rem 1rem;
+  border: 1px solid #e5e8ee;
+  border-radius: 0.6rem;
+  background: #f9fafc;
+}
+
+.vote__motion legend {
+  padding: 0 0.3rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #2f4fa8;
+}
+
+.vote__motion-title {
+  margin: 0;
+  font-size: 0.98rem;
+  font-weight: 500;
+  color: #11141a;
+  overflow-wrap: anywhere;
+}
+
+.vote__options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.vote__option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid #c8ced8;
+  border-radius: 0.5rem;
+  background: #ffffff;
+  font-size: 0.92rem;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.vote__option:has(input:checked) {
+  border-color: #2f6fed;
+  background: #eef2ff;
+}
+
+.vote__option:focus-within {
+  outline: 2px solid #2f6fed;
+  outline-offset: 1px;
+}
+
+.vote__option input {
+  margin: 0.15rem 0 0;
+  accent-color: #2f6fed;
+  flex: 0 0 auto;
+}
+
+.vote__option span {
+  overflow-wrap: anywhere;
+}
+
+.vote__submit {
+  align-self: flex-start;
+  padding: 0.7rem 1.3rem;
+  border: 0;
+  border-radius: 0.55rem;
+  background: #2f6fed;
+  color: #ffffff;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.vote__submit:hover:not(:disabled) {
+  background: #255cc4;
+}
+
+.vote__submit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.vote__done {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.vote__done-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1c6b3c;
+}
+
+.vote__done p {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.vote__receipt {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid #d7e8dd;
+  border-radius: 0.6rem;
+  background: #f2faf5;
+}
+
+.vote__receipt-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1c6b3c;
+}
+
+.vote__receipt ul {
+  margin: 0;
+  padding-left: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.vote__weight {
+  font-size: 0.85rem;
+  color: #5b6472;
+}
+
+@media (max-width: 360px) {
+  .vote {
+    padding: 0.75rem;
+  }
+
+  .vote__card {
+    padding: 0.9rem;
+  }
+
+  .vote__submit {
+    width: 100%;
+  }
+}

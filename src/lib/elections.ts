@@ -48,19 +48,32 @@ export async function listElections(): Promise<Election[]> {
   return result.rows.map((row) => toElection(row as unknown as ElectionRow));
 }
 
-/** Minimal election data for pages that only need to know it exists. */
-export async function findElectionById(
-  id: number,
-): Promise<{ id: number; title: string } | null> {
+/** Full election data, including status and the voting window. */
+export async function findElectionById(id: number): Promise<Election | null> {
   const result = await db.execute({
-    sql: "SELECT id, title FROM election WHERE id = ?",
+    sql: "SELECT id, title, status, opens_at, closes_at FROM election WHERE id = ?",
     args: [id],
   });
 
   const row = result.rows[0];
   if (row === undefined) return null;
 
-  return { id: Number(row.id), title: String(row.title) };
+  return toElection(row as unknown as ElectionRow);
+}
+
+/** Publish or close an election. Both are explicit admin actions. */
+export async function updateElectionStatus(
+  id: number,
+  status: "open" | "closed",
+): Promise<Election | null> {
+  const result = await db.execute({
+    sql: `UPDATE election SET status = ? WHERE id = ?
+          RETURNING id, title, status, opens_at, closes_at`,
+    args: [status, id],
+  });
+
+  const row = result.rows[0];
+  return row === undefined ? null : toElection(row as unknown as ElectionRow);
 }
 
 /** Creates a draft election. Publishing it is a separate step. */

@@ -247,3 +247,24 @@
 .elections__action-link:hover {
   text-decoration: underline;
 }
+
+.elections__action-button {
+  padding: 0.3rem 0.65rem;
+  border: 1px solid #c8ced8;
+  border-radius: 0.4rem;
+  background: #ffffff;
+  color: #1f2430;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.elections__action-button:hover:not(:disabled) {
+  background: #f1f3f6;
+}
+
+.elections__action-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}

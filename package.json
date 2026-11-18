@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "db:init": "node --env-file=.env scripts/init-db.mjs",
+    "db:migrate": "node --env-file=.env scripts/migrate.mjs",
     "hash": "node scripts/hash-password.mjs",
     "i18n:check": "node scripts/check-i18n.mjs"
   },

@@ -79,3 +79,86 @@ export type MailSendSummary = {
   dryRun: boolean;
   results: MailRecipientResult[];
 };
+
+/* One selectable answer of a motion (free text defined by the admin). */
+export type MotionOption = {
+  id: number;
+  label: string;
+  position: number;
+};
+
+/* A question to vote on, with its own list of options. */
+export type Motion = {
+  id: number;
+  title: string;
+  position: number;
+  options: MotionOption[];
+};
+
+/* Status of a voting window, enforced by the API on every vote. */
+export type VoteWindow = "draft" | "upcoming" | "open" | "closed";
+
+/* Everything a voter needs to fill in the ballot; no admin session required. */
+export type Ballot = {
+  election: {
+    id: number;
+    title: string;
+    window: VoteWindow;
+    opensAt: string | null;
+    closesAt: string | null;
+  };
+  voterName: string;
+  motions: Motion[];
+  /** Only present after voting: what this token recorded. */
+  receipt: VoteReceipt | null;
+};
+
+/* A single choice in the ballot submitted by the voter. */
+export type VoteChoice = {
+  motionId: number;
+  optionId: number;
+};
+
+/* Confirmation returned after a successful vote. */
+export type VoteReceipt = {
+  castAt: string;
+  weight: number;
+  answers: Array<{
+    motionTitle: string;
+    optionLabel: string;
+    weight: number;
+  }>;
+};
+
+/* Weighted totals of one option. `weight` uses the weight at cast time. */
+export type ResultOption = {
+  label: string;
+  votes: number;
+  weight: number;
+};
+
+/* Weighted totals of one motion. */
+export type MotionResult = {
+  motionId: number;
+  title: string;
+  position: number;
+  options: ResultOption[];
+  totalVotes: number;
+  totalWeight: number;
+};
+
+/* Participation and per-motion tallies shown in the admin portal. */
+export type ElectionResults = {
+  election: {
+    id: number;
+    title: string;
+    status: Election["status"];
+  };
+  turnout: {
+    voters: number;
+    voted: number;
+    weightTotal: number;
+    weightCast: number;
+  };
+  results: MotionResult[];
+};
