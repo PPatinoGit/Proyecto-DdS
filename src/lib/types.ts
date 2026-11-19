@@ -162,3 +162,111 @@ export type ElectionResults = {
   };
   results: MotionResult[];
 };
+
+/* Stable category keys; the interface translates them to the active language. */
+export type CategoryKey =
+  | "finance"
+  | "operations"
+  | "environment"
+  | "marketing"
+  | "people"
+  | "technology"
+  | "legal"
+  | "general";
+
+/* Minimal person record used to pick questionnaire owners and delegates. */
+export type OrganizationPerson = {
+  personId: number;
+  name: string;
+  email: string;
+};
+
+/* Questionnaire summary shown in the admin list. */
+export type Questionnaire = {
+  id: number;
+  title: string;
+  owner: OrganizationPerson;
+  status: "open" | "closed";
+  createdAt: string;
+  questionCount: number;
+  answerCount: number;
+  delegationCount: number;
+};
+
+/* One question with its assigned category and current responsible. */
+export type QuestionnaireQuestion = {
+  id: number;
+  body: string;
+  position: number;
+  category: CategoryKey;
+  assignee: OrganizationPerson | null;
+  answer: string | null;
+  answeredAt: string | null;
+};
+
+/* Aggregated progress, independent of who owns each question. */
+export type QuestionnaireProgress = {
+  total: number;
+  answered: number;
+  delegated: number;
+  byCategory: Array<{
+    category: CategoryKey;
+    total: number;
+    answered: number;
+  }>;
+};
+
+/* One entry of the delegation history. */
+export type DelegationEvent = {
+  id: number;
+  questionBody: string;
+  fromName: string;
+  toName: string;
+  createdAt: string;
+};
+
+/* Full questionnaire detail shown in the admin panel. */
+export type QuestionnaireDetail = {
+  questionnaire: Questionnaire;
+  progress: QuestionnaireProgress;
+  questions: QuestionnaireQuestion[];
+  /** Link for the initial owner, kept stable across resends. */
+  ownerLink: string | null;
+  history: DelegationEvent[];
+};
+
+/* Payload accepted by POST /api/questionnaires. */
+export type QuestionnaireInput = {
+  title: string;
+  ownerId: number;
+  questions: string[];
+};
+
+/* A recipient's view through /questionnaire/<token>. */
+export type QuestionnaireView = {
+  questionnaire: {
+    id: number;
+    title: string;
+  };
+  person: OrganizationPerson;
+  progress: QuestionnaireProgress;
+  /** Questions this person is currently responsible for. */
+  mine: QuestionnaireQuestion[];
+  /** Questions owned by other people, shown read-only. */
+  others: QuestionnaireQuestion[];
+  /** People this person may delegate to. */
+  people: OrganizationPerson[];
+  history: DelegationEvent[];
+};
+
+/* Answer written by the current responsible of one question. */
+export type QuestionnaireAnswerInput = {
+  questionId: number;
+  body: string;
+};
+
+/* One or more questions moved to another responsible at once. */
+export type QuestionnaireDelegationInput = {
+  questionIds: number[];
+  toPersonId: number;
+};

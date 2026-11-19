@@ -49,6 +49,7 @@ const SECTIONS = [
     id: "questionnaires",
     titleKey: "admin.sections.questionnaires.title",
     descriptionKey: "admin.sections.questionnaires.description",
+    to: "/admin/questionnaires",
   },
 ] as const satisfies readonly Section[];
 

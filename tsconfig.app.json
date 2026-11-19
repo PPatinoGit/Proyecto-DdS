@@ -36,6 +36,9 @@
     "src/lib/validation.ts",
     "src/lib/voting.ts",
     "src/lib/motions.ts",
-    "src/lib/votes.ts"
+    "src/lib/votes.ts",
+    "src/lib/categories.ts",
+    "src/lib/questionnaire-tokens.ts",
+    "src/lib/questionnaires.ts"
   ]
 }

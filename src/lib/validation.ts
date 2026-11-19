@@ -115,3 +115,35 @@ export const voteInputSchema = z
   );
 
 export type VoteInputPayload = z.infer<typeof voteInputSchema>;
+
+/*
+ Questionnaires: the admin writes free-text questions and the server assigns a
+ category to each one. The cap keeps the whole write inside one transaction.
+*/
+export const questionnaireInputSchema = z.object({
+  title: z.string().trim().min(1).max(200),
+  ownerId: z.number().int().positive(),
+  questions: z.array(z.string().trim().min(1).max(1000)).min(1).max(100),
+});
+
+export type QuestionnaireInputPayload = z.infer<typeof questionnaireInputSchema>;
+
+/** One answer is written by the current responsible of that question. */
+export const questionnaireAnswerSchema = z.object({
+  questionId: z.number().int().positive(),
+  body: z.string().trim().min(1).max(5000),
+});
+
+export type QuestionnaireAnswerPayload = z.infer<typeof questionnaireAnswerSchema>;
+
+/** One or more questions move to another person of the organization at once. */
+export const questionnaireDelegationSchema = z
+  .object({
+    questionIds: z.array(z.number().int().positive()).min(1).max(100),
+    toPersonId: z.number().int().positive(),
+  })
+  .refine(({ questionIds }) => new Set(questionIds).size === questionIds.length, {
+    message: "duplicate_question",
+  });
+
+export type QuestionnaireDelegationPayload = z.infer<typeof questionnaireDelegationSchema>;

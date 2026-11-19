@@ -83,16 +83,19 @@ delegarse a distintas personas de la organización.
 > Estructura **completa prevista**; las carpetas vacías son bloques futuros. Implementado
 > hasta ahora:
 >
-> `data/users.json` · `db/schema.sql` · `db/migrations/001_motion_options.sql` ·
+> `data/users.json` · `db/schema.sql` · `db/migrations/{001_motion_options,002_questionnaire_tokens}.sql` ·
 > `scripts/hash-password.mjs` · `scripts/init-db.mjs` · `scripts/migrate.mjs` ·
 > `scripts/check-i18n.mjs` · `api/auth/login.ts` · `api/auth/logout.ts` · `api/auth/me.ts` ·
 > `api/elections/{index,voters,motions,status,results}.ts` · `api/emails/{config,send}.ts` ·
 > `api/vote/[token].ts` ·
-> `src/lib/{auth,db,users,api,auth-api,elections,elections-api,voters,voters-api,csv,session,types,emails,emails-api,tokens,email-template,email-limits,gender,voting,motions,votes,motions-api,results-api,vote-api}.ts` ·
+> `api/questionnaires/{index,[id]}.ts` · `api/questionnaire/[token].ts` ·
+> `api/questionnaire/[token]/delegate.ts` ·
+> `src/lib/{auth,db,users,api,auth-api,elections,elections-api,voters,voters-api,csv,session,types,emails,emails-api,tokens,email-template,email-limits,gender,voting,motions,votes,categories,questionnaire-tokens,questionnaires,questionnaires-api,questionnaire-link-api,motions-api,results-api,vote-api}.ts` ·
 > `src/hooks/useAuth.ts` · `src/components/auth/{AuthProvider,route-guards}` ·
 > `src/components/ui/{LanguageSwitcher,FullScreenLoader}` · `src/i18n/` ·
-> `src/pages/Login.tsx` · `src/pages/admin/{AdminHome,Elections,Voters,Emails,Ballots,Results}.tsx` ·
-> `src/pages/vote/VotePage.tsx` · `src/App.tsx` · `src/main.tsx` · `vercel.json`
+> `src/pages/Login.tsx` · `src/pages/admin/{AdminHome,Elections,Voters,Emails,Ballots,Results,Questionnaires}.tsx` ·
+> `src/pages/vote/VotePage.tsx` · `src/pages/questionnaire/QuestionnairePage.tsx` ·
+> `src/App.tsx` · `src/main.tsx` · `vercel.json`
 
 ```
 Proyecto DdS/
@@ -112,19 +115,21 @@ Proyecto DdS/
 │   │   └── send.ts               # POST /api/emails/send (lote de correos o prueba)
 │   ├── vote/
 │   │   └── [token].ts            # GET/POST /api/vote/<token> (leer papeleta / votar)
-│   └── questionnaires/
-│       ├── index.ts
-│       └── questions/
-│           └── [id]/
-│               ├── answer.ts
-│               └── delegate.ts   # transferir responsabilidad
+│   ├── questionnaires/
+│   │   ├── index.ts              # GET/POST /api/questionnaires (listar / crear)
+│   │   └── [id].ts               # GET  /api/questionnaires/<id> (detalle)
+│   └── questionnaire/
+│       ├── [token].ts            # GET/POST /api/questionnaire/<token> (leer / responder)
+│       └── [token]/
+│           └── delegate.ts       # POST /api/questionnaire/<token>/delegate
 ├── data/
 │   ├── users.json                # cuentas de administrador (solo lectura, se versiona)
 │   └── dev.db                    # SQLite local (NO se versiona)
 ├── db/
 │   ├── schema.sql                # esquema inicial (dialecto SQLite)
 │   └── migrations/
-│       └── 001_motion_options.sql# opciones libres por moción
+│       ├── 001_motion_options.sql       # opciones libres por moción
+│       └── 002_questionnaire_tokens.sql # link único por persona/cuestionario
 ├── docs/
 │   ├── decisiones.md             # decisiones técnicas y su justificación
 │   └── modelo-datos.md           # detalle del modelo de datos
@@ -141,9 +146,9 @@ Proyecto DdS/
 │   │   ├── forms/                # inputs, validación
 │   │   └── ui/                   # LanguageSwitcher, FullScreenLoader, botones, tablas
 │   ├── pages/
-│   │   ├── admin/                # AdminHome, Elections, Voters, Emails, Ballots, Results
+│   │   ├── admin/                # AdminHome, Elections, Voters, Emails, Ballots, Results, Questionnaires
 │   │   ├── vote/                 # VotePage (/vote/<token>)
-│   │   ├── questionnaire/        # cuestionarios y delegación
+│   │   ├── questionnaire/        # QuestionnairePage (/questionnaire/<token>)
 │   │   └── Login.tsx
 │   ├── i18n/
 │   │   ├── es.json               # fuente de verdad de las claves
@@ -167,7 +172,12 @@ Proyecto DdS/
 │   │   ├── emails-api.ts         # llamadas tipadas a /api/emails
 │   │   ├── gender.ts             # saludo según el género del CSV
 │   │   ├── session.ts            # usuario de la sesión en el servidor
-│   │   ├── tokens.ts             # tokens del link único (idempotentes)
+│   │   ├── tokens.ts             # tokens del link único de voto (idempotentes)
+│   │   ├── categories.ts         # categorización automática (es / en / ru)
+│   │   ├── questionnaire-tokens.ts # links únicos del cuestionario
+│   │   ├── questionnaires.ts     # alta, respuesta, delegación y progreso (servidor)
+│   │   ├── questionnaires-api.ts # llamadas de administración (cliente)
+│   │   ├── questionnaire-link-api.ts # llamadas públicas por link (cliente)
 │   │   ├── types.ts              # tipos compartidos cliente/servidor
 │   │   ├── users.ts              # lectura de data/users.json
 │   │   ├── validation.ts         # esquemas Zod
@@ -519,12 +529,90 @@ tiene censo, la página enlaza directo a la importación de votantes.
 
 ---
 
+## Cuestionarios masivos: categorías, delegación y progreso
+
+El administrador escribe preguntas en texto libre y el sistema las clasifica automáticamente.
+Cada cuestionario se entrega a **una persona inicial**, que responde las suyas y puede delegar
+una o varias a otras personas. La responsabilidad es **exclusiva**: si se delega, el dueño
+anterior deja de serlo y el nuevo recibe su propio enlace.
+
+| Método | Ruta | Respuesta |
+| --- | --- | --- |
+| `GET` | `/api/questionnaires` | `200` con `{ questionnaires, people }` · `401` sin sesión |
+| `POST` | `/api/questionnaires` | `201` con `{ questionnaireId, ownerToken }` · `400` `invalid_input` / `invalid_json` / `person_not_found` · `401` sin sesión |
+| `GET` | `/api/questionnaires/<id>` | `200` con el detalle · `400` `invalid_input` · `404` `questionnaire_not_found` · `401` sin sesión |
+| `GET` | `/api/questionnaire/<token>` | `200` con `{ view }` · `404` `invalid_token` / `questionnaire_not_found` |
+| `POST` | `/api/questionnaire/<token>` | `200` con `{ ok: true }` · `400` `invalid_input` / `different_questionnaire` · `403` `not_responsible` · `404` `invalid_token` |
+| `POST` | `/api/questionnaire/<token>/delegate` | `200` con `{ delegateToken }` · `400` `same_person` / `person_not_found` / `duplicate_question` · `403` `not_responsible` · `404` `invalid_token` |
+
+Las tres primeras son de administrador; las tres últimas son **públicas**: el token de la URL
+es la credencial y no hace falta iniciar sesión.
+
+### Categorización automática
+
+`categorizeQuestion` (`src/lib/categories.ts`) normaliza el texto (minúsculas, sin diacríticos,
+sin puntuación) y busca palabras clave en **español, inglés y ruso**: `finance`, `operations`,
+`environment`, `marketing`, `people`, `technology` y `legal`. Cada coincidencia suma un punto y
+gana la categoría con más puntos; los empates favorecen el orden canónico. Si no hay ninguna
+coincidencia se usa `general`. Las etiquetas visibles son claves de los diccionarios
+(`category.finance`, …), así que se muestran en el idioma activo sin API externa.
+
+### Responder y delegar
+
+1. Al crear el cuestionario se crean todas las preguntas, sus `assignment` (el dueño inicial)
+   y el `questionnaire_token` del dueño, **en una sola transacción**. El enlace
+   `/questionnaire/<token>` queda listo de inmediato.
+2. El destinatario abre su enlace y responde solo las preguntas cuyo `assignment` apunta a él;
+   cada respuesta reemplaza la anterior (`UNIQUE` implícito por pregunta) y actualiza el
+   progreso.
+3. Para delegar, selecciona varias preguntas y una persona. `delegateQuestions` valida **todas**
+   las preguntas antes de escribir ninguna, hace `UPDATE assignment` + `INSERT delegation_log`
+   para cada una y asegura el `questionnaire_token` del delegado, todo en la misma transacción.
+4. Si el antiguo dueño vuelve a usar su enlace, ya no aparece como responsable de esas preguntas
+   y la API rechaza cualquier respuesta con `403 not_responsible`.
+
+### Progreso consolidado
+
+Tanto el administrador como cualquier receptor ven los mismos totales agregados: `total`,
+`answered`, `delegated` y un desglose por categoría. Son recuentos, **nunca identidades**, así
+que el progreso global no revela quién respondió qué. El detalle de administrador sí muestra
+las respuestas y el historial de delegaciones; la vista pública solo muestra las preguntas
+propias y, como solo lectura, las de los demás.
+
+```bash
+# crear (con cookie de administrador): la persona 1 es la responsable inicial
+curl -s -b /tmp/dds-cookies.txt -X POST http://localhost:3000/api/questionnaires \
+  -H "content-type: application/json" \
+  -d '{"title":"Diagnóstico 2026","ownerId":1,"questions":["¿Cuál es el presupuesto?","¿Cómo va la calidad del proceso?"]}'
+
+# detalle del cuestionario creado
+curl -s -b /tmp/dds-cookies.txt http://localhost:3000/api/questionnaires/1
+
+# responder con el link del dueño (sin cookie)
+curl -s -X POST "http://localhost:3000/api/questionnaire/$TOKEN" \
+  -H "content-type: application/json" \
+  -d '{"questionId":1,"body":"El presupuesto está aprobado"}'
+
+# delegar dos preguntas a la persona 2
+curl -s -X POST "http://localhost:3000/api/questionnaire/$TOKEN/delegate" \
+  -H "content-type: application/json" \
+  -d '{"questionIds":[1,2],"toPersonId":2}'
+```
+
+En la interfaz: `/admin` → tarjeta **Cuestionarios** (`/admin/questionnaires`). El formulario
+toma el título, un responsable del censo y las preguntas (de 1 a 100, hasta 1000 caracteres
+cada una). Tras crear, muestra el enlace del responsable con botón de copiar. La lista abre el
+detalle con progreso, categorías, responsables actuales e historial. El enlace público
+`/questionnaire/<token>` permite responder y delegar, con el selector de idioma arriba.
+
+---
+
 ## Internacionalización (es / en / ru)
 
 Sin librerías de i18n y sin APIs externas de traducción: los textos viven en el repositorio.
 
 - `src/i18n/es.json` es la **fuente de verdad**. De sus claves se deriva el tipo `TranslationKey`.
-  Hoy hay **258 claves** traducidas en los tres idiomas.
+  Hoy hay **355 claves** traducidas en los tres idiomas.
 - `en.json` y `ru.json` deben contener todas las claves de `es.json`. Si falta una,
   `npm run build` falla con `TS2741`; un typo en `t("...")` también es un error de compilación.
 - Los componentes solo usan `t("clave")`; **nunca** concatenan frases. Los errores del backend
@@ -563,6 +651,7 @@ resolverán con `Intl.PluralRules`; fechas y números siempre con `Intl.DateTime
 | `assignment` | **Responsable único** de cada pregunta. |
 | `answer` | Respuesta de cada pregunta. |
 | `delegation_log` | Historial de delegaciones (quién delegó a quién y cuándo). |
+| `questionnaire_token` | Link único y estable por `(cuestionario, persona)`. |
 
 ### Invariantes del sistema
 
@@ -580,6 +669,12 @@ Estas reglas se garantizan en la base de datos y en la aplicación, no solo en l
 5. **Solo la ventana abierta acepta votos:** estado `open` y fechas dentro del rango se
    comprueban en el servidor en cada petición; el botón **Abrir/Cerrar** de la interfaz no es
    la única barrera.
+6. **Un solo responsable por pregunta:** `assignment.question_id` es clave primaria, así que
+   delegar es un `UPDATE` dentro de una transacción que también escribe `delegation_log`.
+   Nunca se observa una pregunta con dos dueños ni sin dueño.
+7. **Enlace estable por persona:** `UNIQUE (questionnaire_id, person_id)` en
+   `questionnaire_token` conserva el mismo link aunque la persona delegue y recupere
+   responsabilidades.
 
 ---
 
@@ -692,6 +787,10 @@ El ciclo completo en el navegador sería:
    recargar, «Ya has votado». El idioma se puede cambiar con el selector (es / en / ru).
 6. En `/admin/results?election=1` consultar la participación y los totales ponderados por
    opción, con el mismo selector de idioma.
+7. En `/admin/questionnaires` crear un cuestionario: elegir responsable, escribir preguntas y
+   copiar el enlace que aparece. Abrir `/questionnaire/<token>` sin sesión, responder y delegar
+   algunas preguntas; el delegado recibe su propio enlace. Volver al detalle de administración
+   para ver el progreso consolidado y el historial de delegaciones.
 
 Comprobar el ciclo de sesión completo por HTTP:
 
@@ -761,6 +860,10 @@ código funciona sin cambios.
 | 2026-11-17 | Ventana calculada en el servidor con botones Abrir/Cerrar | `windowFor` deriva `draft`/`upcoming`/`open`/`closed` del estado y las fechas en cada petición; `closed` es final. Así el frontend no es la única barrera y las fechas no dependen de la hora del votante. |
 | 2026-11-17 | Resultados solo agregados y ponderados | `weight_at_cast` congela el peso y los totals se calculan por opción; ningún endpoint revela quién votó qué, pero la cuota refleja la ponderación del censo. |
 | 2026-11-17 | Migraciones versionadas para cambios de esquema | `db/migrations/001_motion_options.sql` permite actualizar una base existente con `npm run db:migrate` sin recrear datos; `db:init` aplica esquema + migraciones desde cero. |
+| 2026-11-19 | Cuestionarios con tablas ya previstas y token propio | `questionnaire`, `category`, `question`, `assignment`, `answer` y `delegation_log` ya estaban en `schema.sql`; solo faltaba `questionnaire_token` (migración `002`) para dar a cada persona un enlace estable, igual que en la votación. |
+| 2026-11-19 | Categorización por palabras clave en tres idiomas | Función pura y sin dependencias: normaliza acentos y puntuación, cuenta coincidencias en español, inglés y ruso y usa `general` como respaldo. Evita llamar a una API de traducción o clasificación. |
+| 2026-11-19 | Responsable único con `assignment.question_id` como PK | Delegar es un `UPDATE` atómico que también escribe `delegation_log` en la misma transacción. Así nunca hay dos dueños de una pregunta y el historial queda completo. |
+| 2026-11-19 | Progreso solo agregado | Totales y desglose por categoría se calculan en el servidor; la vista pública nunca revela quién respondió qué, mientras que el detalle de administrador sí muestra respuestas e historial. |
 
 ---
 
@@ -769,7 +872,7 @@ código funciona sin cambios.
 - [x] Definición de requisitos
 - [x] Definición de stack y modelo de datos
 - [x] Configuración del proyecto (React + TypeScript + Vite)
-- [x] Esquema de base de datos (`db/schema.sql`, 13 tablas + migración `001_motion_options`)
+- [x] Esquema de base de datos (`db/schema.sql`, 14 tablas + migraciones `001_motion_options` y `002_questionnaire_tokens`)
 - [x] Autenticación en el backend (`login`, `me`, `logout` + cookie firmada)
 - [x] Layout responsivo e internacionalización (es / en / ru)
 - [x] Autenticación en el frontend (formulario, guardias de ruta, `useAuth`)
@@ -779,5 +882,5 @@ código funciona sin cambios.
 - [x] Envío de correos personalizados con adjuntos y link único (`/admin/emails`)
 - [x] Página de votación por link único con ponderación (`/vote/<token>`)
 - [x] Papeleta editable, apertura/cierre y resultados (`/admin/ballots`, `/admin/results`)
-- [ ] Cuestionarios con categorías y delegación
+- [x] Cuestionarios con categorías automáticas, delegación y progreso (`/admin/questionnaires`, `/questionnaire/<token>`)
 - [ ] Endurecimiento (rate limiting, auditoría, pruebas)
