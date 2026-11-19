@@ -270,3 +270,36 @@ export type QuestionnaireDelegationInput = {
   questionIds: number[];
   toPersonId: number;
 };
+
+/* Who caused an audited action. Recipients are identified by person id only. */
+export type AuditActorType = "admin" | "recipient" | "system";
+
+/* Machine-readable actions; the interface translates them to the active language. */
+export type AuditAction =
+  | "auth.login"
+  | "auth.login_failed"
+  | "auth.logout"
+  | "election.create"
+  | "election.status"
+  | "election.voters_import"
+  | "election.motions"
+  | "email.send"
+  | "questionnaire.create"
+  | "vote.cast"
+  | "questionnaire.answer"
+  | "questionnaire.delegate";
+
+/* Redacted extra data attached to an audit event. Never holds secrets. */
+export type AuditMetadata = Record<string, string | number | boolean | null>;
+
+/* One audit row as returned by the admin API. */
+export type AuditEvent = {
+  id: number;
+  createdAt: string;
+  actorType: AuditActorType;
+  actorId: string | null;
+  action: AuditAction;
+  targetType: string | null;
+  targetId: string | null;
+  metadata: AuditMetadata;
+};

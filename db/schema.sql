@@ -111,7 +111,29 @@ CREATE TABLE IF NOT EXISTS questionnaire_token (
   UNIQUE (questionnaire_id, person_id)
 );
 
+-- Redacted trail of mutations. Metadata is a JSON string, never a secret.
+CREATE TABLE IF NOT EXISTS audit_log (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+  actor_type  TEXT NOT NULL,
+  actor_id    TEXT,
+  action      TEXT NOT NULL,
+  target_type TEXT,
+  target_id   TEXT,
+  metadata    TEXT
+);
+
+-- Fixed-window counters shared by all serverless instances.
+CREATE TABLE IF NOT EXISTS rate_limit (
+  bucket       TEXT NOT NULL,
+  identifier   TEXT NOT NULL,
+  window_start INTEGER NOT NULL,
+  count        INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (bucket, identifier)
+);
+
 CREATE INDEX IF NOT EXISTS idx_vote_motion ON vote(motion_id);
 CREATE INDEX IF NOT EXISTS idx_questionnaire_owner ON questionnaire(owner_id);
 CREATE INDEX IF NOT EXISTS idx_question_questionnaire ON question(questionnaire_id);
 CREATE INDEX IF NOT EXISTS idx_questionnaire_token_q ON questionnaire_token(questionnaire_id);
+CREATE INDEX IF NOT EXISTS idx_audit_created ON audit_log(created_at DESC, id DESC);

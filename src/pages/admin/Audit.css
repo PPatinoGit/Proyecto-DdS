@@ -1,0 +1,119 @@
+/*
+  Audit page layout.
+
+  The table scrolls horizontally on narrow screens instead of squeezing the
+  four columns, so the same component works on a phone and on a desktop.
+*/
+
+.audit {
+  min-height: 100vh;
+  padding: 2rem 1rem 3rem;
+  background: var(--color-bg, #0f172a);
+  color: var(--color-text, #e2e8f0);
+}
+
+.audit__content {
+  width: min(100%, 1100px);
+  margin: 0 auto;
+}
+
+.audit__header {
+  margin-bottom: 1.5rem;
+}
+
+.audit__topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.audit__back {
+  color: inherit;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.audit__back:hover,
+.audit__back:focus-visible {
+  text-decoration: underline;
+}
+
+.audit__title {
+  margin: 0;
+  font-size: clamp(1.6rem, 4vw, 2.2rem);
+}
+
+.audit__panel {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 0.75rem;
+  background: rgba(30, 41, 59, 0.65);
+}
+
+.audit__field {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+}
+
+.audit__field select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  border-radius: 0.5rem;
+  background: rgba(15, 23, 42, 0.8);
+  color: inherit;
+}
+
+.audit__hint {
+  margin: 0;
+  color: rgba(226, 232, 240, 0.75);
+}
+
+.audit__error {
+  border-color: rgba(248, 113, 113, 0.6);
+}
+
+.audit__error p {
+  margin: 0 0 0.75rem;
+}
+
+.audit__retry {
+  padding: 0.45rem 0.9rem;
+  border: 1px solid currentColor;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.audit__table-panel {
+  padding: 0;
+  overflow-x: auto;
+}
+
+.audit__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.audit__table th,
+.audit__table td {
+  padding: 0.65rem 0.8rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+  white-space: nowrap;
+}
+
+.audit__table th {
+  font-weight: 600;
+  color: rgba(226, 232, 240, 0.85);
+}
+
+.audit__table tbody tr:last-child td {
+  border-bottom: 0;
+}

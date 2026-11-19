@@ -11,7 +11,10 @@
     "db:init": "node --env-file=.env scripts/init-db.mjs",
     "db:migrate": "node --env-file=.env scripts/migrate.mjs",
     "hash": "node scripts/hash-password.mjs",
-    "i18n:check": "node scripts/check-i18n.mjs"
+    "i18n:check": "node scripts/check-i18n.mjs",
+    "test": "node --loader ./tests/ts-resolve.mjs --test tests/*.test.mjs",
+    "test:unit": "node --loader ./tests/ts-resolve.mjs --test tests/unit.test.mjs",
+    "test:api": "node --loader ./tests/ts-resolve.mjs --test tests/api.test.mjs"
   },
   "dependencies": {
     "@libsql/client": "^0.18.0",

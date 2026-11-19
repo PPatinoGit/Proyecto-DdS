@@ -9,6 +9,7 @@
 import { z } from "zod";
 import { findElectionById } from "../../src/lib/elections";
 import { hasVotes, listMotions, replaceMotions } from "../../src/lib/motions";
+import { recordAudit } from "../../src/lib/audit";
 import { readSessionUser } from "../../src/lib/session";
 import { VotingError } from "../../src/lib/voting";
 import { motionsInputSchema } from "../../src/lib/validation";
@@ -44,7 +45,8 @@ export async function GET(request: Request): Promise<Response> {
 }
 
 export async function POST(request: Request): Promise<Response> {
-  if (readSessionUser(request) === null) return json({ error: "unauthenticated" }, 401);
+  const user = readSessionUser(request);
+  if (user === null) return json({ error: "unauthenticated" }, 401);
 
   let body: unknown;
   try {
@@ -58,6 +60,14 @@ export async function POST(request: Request): Promise<Response> {
 
   try {
     const motions = await replaceMotions(parsed.data.electionId, parsed.data.motions);
+    await recordAudit({
+      actorType: "admin",
+      actorId: user.id,
+      action: "election.motions",
+      targetType: "election",
+      targetId: parsed.data.electionId,
+      metadata: { motions: motions.length },
+    });
     return json({ motions }, 200);
   } catch (error) {
     if (error instanceof VotingError) {

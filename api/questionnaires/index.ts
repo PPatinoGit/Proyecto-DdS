@@ -8,6 +8,7 @@
 */
 
 import { readSessionUser } from "../../src/lib/session";
+import { recordAudit } from "../../src/lib/audit";
 import {
   createQuestionnaire,
   listOrganizationPeople,
@@ -44,7 +45,8 @@ export async function GET(request: Request): Promise<Response> {
 }
 
 export async function POST(request: Request): Promise<Response> {
-  if (readSessionUser(request) === null) return json({ error: "unauthenticated" }, 401);
+  const user = readSessionUser(request);
+  if (user === null) return json({ error: "unauthenticated" }, 401);
 
   let body: unknown;
   try {
@@ -58,6 +60,14 @@ export async function POST(request: Request): Promise<Response> {
 
   try {
     const result = await createQuestionnaire(parsed.data);
+    await recordAudit({
+      actorType: "admin",
+      actorId: user.id,
+      action: "questionnaire.create",
+      targetType: "questionnaire",
+      targetId: result.questionnaireId,
+      metadata: { questionCount: parsed.data.questions.length },
+    });
     return json(result, 201);
   } catch (error) {
     if (error instanceof QuestionnaireError) return questionnaireErrorResponse(error);

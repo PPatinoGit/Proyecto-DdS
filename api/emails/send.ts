@@ -27,6 +27,8 @@ import {
   MAX_ATTACHMENTS_TOTAL_BYTES,
 } from "../../src/lib/email-limits";
 import { readSessionUser } from "../../src/lib/session";
+import { recordAudit } from "../../src/lib/audit";
+import { RATE_LIMITS, rateLimitGuard, withRateLimitHeaders } from "../../src/lib/rate-limit";
 import { emailSendSchema } from "../../src/lib/validation";
 import type { MailRecipientResult } from "../../src/lib/types";
 
@@ -62,15 +64,28 @@ export async function POST(request: Request): Promise<Response> {
   const user = readSessionUser(request);
   if (user === null) return json({ error: "unauthenticated" }, 401);
 
+  /* Sending mail is the most expensive action here, so it is limited per admin. */
+  const guard = await rateLimitGuard(
+    "email:admin",
+    user.id,
+    RATE_LIMITS.emailSend.limit,
+    RATE_LIMITS.emailSend.windowMs,
+  );
+  if (guard.denied !== null) return guard.denied;
+
+  function withLimits(response: Response): Response {
+    return withRateLimitHeaders(response, guard.result, RATE_LIMITS.emailSend.limit);
+  }
+
   let body: unknown;
   try {
     body = await request.json();
   } catch {
-    return json({ error: "invalid_json" }, 400);
+    return withLimits(json({ error: "invalid_json" }, 400));
   }
 
   const parsed = emailSendSchema.safeParse(body);
-  if (!parsed.success) return json({ error: "invalid_input" }, 400);
+  if (!parsed.success) return withLimits(json({ error: "invalid_input" }, 400));
 
   /* Validate (and decode) attachments before touching the database. */
   const attachments: OutgoingAttachment[] = [];
@@ -79,28 +94,30 @@ export async function POST(request: Request): Promise<Response> {
   for (const attachment of parsed.data.attachments) {
     const data = attachment.data.replace(/\s/g, "");
     if (data === "" || data.length % 4 !== 0 || !BASE64_PATTERN.test(data)) {
-      return json({ error: "invalid_attachment" }, 400);
+      return withLimits(json({ error: "invalid_attachment" }, 400));
     }
 
     const bytes = Buffer.from(data, "base64");
-    if (bytes.length === 0) return json({ error: "invalid_attachment" }, 400);
+    if (bytes.length === 0) return withLimits(json({ error: "invalid_attachment" }, 400));
     if (bytes.length > MAX_ATTACHMENT_BYTES) {
-      return json({ error: "attachment_too_large", max: MAX_ATTACHMENT_BYTES }, 400);
+      return withLimits(json({ error: "attachment_too_large", max: MAX_ATTACHMENT_BYTES }, 400));
     }
 
     totalBytes += bytes.length;
     if (totalBytes > MAX_ATTACHMENTS_TOTAL_BYTES) {
-      return json({ error: "attachments_too_large", max: MAX_ATTACHMENTS_TOTAL_BYTES }, 400);
+      return withLimits(
+        json({ error: "attachments_too_large", max: MAX_ATTACHMENTS_TOTAL_BYTES }, 400),
+      );
     }
 
     const name = sanitizeFilename(attachment.name);
-    if (name === "") return json({ error: "invalid_attachment" }, 400);
+    if (name === "") return withLimits(json({ error: "invalid_attachment" }, 400));
     attachments.push({ name, data });
   }
 
   try {
     const election = await findElectionById(parsed.data.electionId);
-    if (election === null) return json({ error: "election_not_found" }, 404);
+    if (election === null) return withLimits(json({ error: "election_not_found" }, 404));
 
     const ids = [...new Set(parsed.data.personIds)];
     const config = getMailConfig();
@@ -117,7 +134,7 @@ export async function POST(request: Request): Promise<Response> {
       const people = await findRosterPeople(parsed.data.electionId, ids);
       /* A mismatch means an id outside this election: reject the whole chunk. */
       if (people.length !== ids.length) {
-        return json({ error: "invalid_recipients" }, 400);
+        return withLimits(json({ error: "invalid_recipients" }, 400));
       }
       tokens = await ensureBallotTokens(parsed.data.electionId, ids);
       recipients = people;
@@ -170,17 +187,35 @@ export async function POST(request: Request): Promise<Response> {
 
     const sent = results.filter((result) => result.status === "sent").length;
 
-    return json(
-      {
+    /* Only counts: no addresses, tokens or attachment contents in the log. */
+    await recordAudit({
+      actorType: "admin",
+      actorId: user.id,
+      action: "email.send",
+      targetType: "election",
+      targetId: parsed.data.electionId,
+      metadata: {
         sent,
         failed: results.length - sent,
+        attachments: attachments.length,
+        test: parsed.data.test,
         dryRun: config.dryRun,
-        results,
       },
-      200,
+    });
+
+    return withLimits(
+      json(
+        {
+          sent,
+          failed: results.length - sent,
+          dryRun: config.dryRun,
+          results,
+        },
+        200,
+      ),
     );
   } catch (error) {
     console.error("Could not send the emails", error);
-    return json({ error: "database_error" }, 500);
+    return withLimits(json({ error: "database_error" }, 500));
   }
 }

@@ -6,6 +6,7 @@
 */
 
 import { updateElectionStatus } from "../../src/lib/elections";
+import { recordAudit } from "../../src/lib/audit";
 import { readSessionUser } from "../../src/lib/session";
 import { electionStatusSchema } from "../../src/lib/validation";
 
@@ -17,7 +18,8 @@ function json(data: unknown, status: number): Response {
 }
 
 export async function POST(request: Request): Promise<Response> {
-  if (readSessionUser(request) === null) return json({ error: "unauthenticated" }, 401);
+  const user = readSessionUser(request);
+  if (user === null) return json({ error: "unauthenticated" }, 401);
 
   let body: unknown;
   try {
@@ -32,6 +34,14 @@ export async function POST(request: Request): Promise<Response> {
   try {
     const election = await updateElectionStatus(parsed.data.electionId, parsed.data.status);
     if (election === null) return json({ error: "election_not_found" }, 404);
+    await recordAudit({
+      actorType: "admin",
+      actorId: user.id,
+      action: "election.status",
+      targetType: "election",
+      targetId: election.id,
+      metadata: { status: parsed.data.status },
+    });
     return json({ election }, 200);
   } catch (error) {
     console.error("Could not change the election status", error);

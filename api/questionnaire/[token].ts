@@ -4,7 +4,8 @@
 
   There is no admin session here: the secret token is the credential. All texts
   in the responses are machine-readable codes so the page can translate them
-  without calling a translation API.
+  without calling a translation API. The token is the rate-limit key, while the
+  audit row stores the resolved person id instead of the secret.
 */
 
 import { z } from "zod";
@@ -13,6 +14,9 @@ import {
   getQuestionnaireView,
   QuestionnaireError,
 } from "../../src/lib/questionnaires";
+import { resolveQuestionnaireToken } from "../../src/lib/questionnaire-tokens";
+import { recordAudit } from "../../src/lib/audit";
+import { RATE_LIMITS, rateLimitGuard, withRateLimitHeaders } from "../../src/lib/rate-limit";
 import { questionnaireAnswerSchema } from "../../src/lib/validation";
 
 const tokenSchema = z.string().regex(/^[A-Za-z0-9_-]{32}$/);
@@ -62,22 +66,45 @@ export async function POST(request: Request): Promise<Response> {
   const token = tokenSchema.safeParse(tokenFrom(request));
   if (!token.success) return json({ error: "invalid_token" }, 404);
 
+  const guard = await rateLimitGuard(
+    "questionnaire:answer",
+    token.data,
+    RATE_LIMITS.questionnaire.limit,
+    RATE_LIMITS.questionnaire.windowMs,
+  );
+  if (guard.denied !== null) return guard.denied;
+
+  function withLimits(response: Response): Response {
+    return withRateLimitHeaders(response, guard.result, RATE_LIMITS.questionnaire.limit);
+  }
+
   let body: unknown;
   try {
     body = await request.json();
   } catch {
-    return json({ error: "invalid_json" }, 400);
+    return withLimits(json({ error: "invalid_json" }, 400));
   }
 
   const parsed = questionnaireAnswerSchema.safeParse(body);
-  if (!parsed.success) return json({ error: "invalid_input" }, 400);
+  if (!parsed.success) return withLimits(json({ error: "invalid_input" }, 400));
 
   try {
+    const holder = await resolveQuestionnaireToken(token.data);
     await answerQuestion(token.data, parsed.data);
-    return json({ ok: true }, 200);
+
+    await recordAudit({
+      actorType: "recipient",
+      actorId: holder?.personId ?? null,
+      action: "questionnaire.answer",
+      targetType: "questionnaire",
+      targetId: holder?.questionnaireId ?? null,
+      metadata: { questionId: parsed.data.questionId },
+    });
+
+    return withLimits(json({ ok: true }, 200));
   } catch (error) {
-    if (error instanceof QuestionnaireError) return questionnaireErrorResponse(error);
+    if (error instanceof QuestionnaireError) return withLimits(questionnaireErrorResponse(error));
     console.error("Could not save the answer", error);
-    return json({ error: "database_error" }, 500);
+    return withLimits(json({ error: "database_error" }, 500));
   }
 }

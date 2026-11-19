@@ -83,27 +83,30 @@ delegarse a distintas personas de la organización.
 > Estructura **completa prevista**; las carpetas vacías son bloques futuros. Implementado
 > hasta ahora:
 >
-> `data/users.json` · `db/schema.sql` · `db/migrations/{001_motion_options,002_questionnaire_tokens}.sql` ·
+> `data/users.json` · `db/schema.sql` · `db/migrations/{001_motion_options,002_questionnaire_tokens,003_audit_and_rate_limit}.sql` ·
 > `scripts/hash-password.mjs` · `scripts/init-db.mjs` · `scripts/migrate.mjs` ·
 > `scripts/check-i18n.mjs` · `api/auth/login.ts` · `api/auth/logout.ts` · `api/auth/me.ts` ·
+> `api/audit/index.ts` ·
 > `api/elections/{index,voters,motions,status,results}.ts` · `api/emails/{config,send}.ts` ·
 > `api/vote/[token].ts` ·
 > `api/questionnaires/{index,[id]}.ts` · `api/questionnaire/[token].ts` ·
 > `api/questionnaire/[token]/delegate.ts` ·
-> `src/lib/{auth,db,users,api,auth-api,elections,elections-api,voters,voters-api,csv,session,types,emails,emails-api,tokens,email-template,email-limits,gender,voting,motions,votes,categories,questionnaire-tokens,questionnaires,questionnaires-api,questionnaire-link-api,motions-api,results-api,vote-api}.ts` ·
+> `src/lib/{auth,db,users,api,auth-api,elections,elections-api,voters,voters-api,csv,session,types,emails,emails-api,tokens,email-template,email-limits,gender,voting,motions,votes,categories,questionnaire-tokens,questionnaires,questionnaires-api,questionnaire-link-api,motions-api,results-api,vote-api,audit,audit-api,rate-limit,request}.ts` ·
 > `src/hooks/useAuth.ts` · `src/components/auth/{AuthProvider,route-guards}` ·
 > `src/components/ui/{LanguageSwitcher,FullScreenLoader}` · `src/i18n/` ·
-> `src/pages/Login.tsx` · `src/pages/admin/{AdminHome,Elections,Voters,Emails,Ballots,Results,Questionnaires}.tsx` ·
+> `src/pages/Login.tsx` · `src/pages/admin/{AdminHome,Elections,Voters,Emails,Ballots,Results,Questionnaires,Audit}.tsx` ·
 > `src/pages/vote/VotePage.tsx` · `src/pages/questionnaire/QuestionnairePage.tsx` ·
-> `src/App.tsx` · `src/main.tsx` · `vercel.json`
+> `src/App.tsx` · `src/main.tsx` · `tests/{helpers.mjs,ts-resolve.mjs,unit.test.mjs,api.test.mjs}` · `vercel.json`
 
 ```
 Proyecto DdS/
 ├── api/                          # Vercel Functions (backend)
 │   ├── auth/
-│   │   ├── login.ts              # POST /api/auth/login
+│   │   ├── login.ts              # POST /api/auth/login (rate limiting + auditoría)
 │   │   ├── logout.ts             # POST /api/auth/logout
 │   │   └── me.ts                 # GET  /api/auth/me
+│   ├── audit/
+│   │   └── index.ts              # GET  /api/audit (registro, solo admin)
 │   ├── elections/
 │   │   ├── index.ts              # GET/POST /api/elections (listar / crear)
 │   │   ├── voters.ts             # GET/POST /api/elections/voters (censo / importar CSV)
@@ -129,7 +132,8 @@ Proyecto DdS/
 │   ├── schema.sql                # esquema inicial (dialecto SQLite)
 │   └── migrations/
 │       ├── 001_motion_options.sql       # opciones libres por moción
-│       └── 002_questionnaire_tokens.sql # link único por persona/cuestionario
+│       ├── 002_questionnaire_tokens.sql # link único por persona/cuestionario
+│       └── 003_audit_and_rate_limit.sql # auditoría y contadores de límite
 ├── docs/
 │   ├── decisiones.md             # decisiones técnicas y su justificación
 │   └── modelo-datos.md           # detalle del modelo de datos
@@ -146,7 +150,7 @@ Proyecto DdS/
 │   │   ├── forms/                # inputs, validación
 │   │   └── ui/                   # LanguageSwitcher, FullScreenLoader, botones, tablas
 │   ├── pages/
-│   │   ├── admin/                # AdminHome, Elections, Voters, Emails, Ballots, Results, Questionnaires
+│   │   ├── admin/                # AdminHome, Elections, Voters, Emails, Ballots, Results, Questionnaires, Audit
 │   │   ├── vote/                 # VotePage (/vote/<token>)
 │   │   ├── questionnaire/        # QuestionnairePage (/questionnaire/<token>)
 │   │   └── Login.tsx
@@ -160,6 +164,8 @@ Proyecto DdS/
 │   │   └── index.ts              # tipos, diccionarios y translate()
 │   ├── lib/
 │   │   ├── api.ts                # cliente HTTP (ApiError)
+│   │   ├── audit.ts              # registro redactado de mutaciones (servidor)
+│   │   ├── audit-api.ts          # llamadas tipadas a /api/audit
 │   │   ├── auth.ts               # sesión y permisos (servidor)
 │   │   ├── auth-api.ts           # llamadas tipadas a /api/auth
 │   │   ├── csv.ts                # parser y validación de CSV (cliente y servidor)
@@ -171,6 +177,8 @@ Proyecto DdS/
 │   │   ├── emails.ts             # envío con Resend y modo simulación (servidor)
 │   │   ├── emails-api.ts         # llamadas tipadas a /api/emails
 │   │   ├── gender.ts             # saludo según el género del CSV
+│   │   ├── rate-limit.ts         # límite de peticiones en SQLite (servidor)
+│   │   ├── request.ts            # IP del cliente para límites (servidor)
 │   │   ├── session.ts            # usuario de la sesión en el servidor
 │   │   ├── tokens.ts             # tokens del link único de voto (idempotentes)
 │   │   ├── categories.ts         # categorización automática (es / en / ru)
@@ -194,6 +202,11 @@ Proyecto DdS/
 │   ├── App.tsx                   # tabla de rutas
 │   ├── main.tsx                  # providers: i18n, router, sesión
 │   └── index.css
+├── tests/
+│   ├── helpers.mjs               # base SQLite temporal y semillas
+│   ├── ts-resolve.mjs            # resuelve imports .ts sin extensión en tests
+│   ├── unit.test.mjs             # límites, auditoría y categorización
+│   └── api.test.mjs              # handlers con Web Requests
 ├── .env.example                  # variables de entorno (sin valores reales)
 ├── .gitignore
 ├── index.html
@@ -233,7 +246,7 @@ Reglas:
 
 | Método | Ruta | Respuesta |
 | --- | --- | --- |
-| `POST` | `/api/auth/login` | `200` + cookie firmada · `401` credenciales inválidas |
+| `POST` | `/api/auth/login` | `200` + cookie firmada · `401` credenciales inválidas · `429` demasiados intentos |
 | `GET` | `/api/auth/me` | `200` con el usuario · `401` sin sesión válida |
 | `POST` | `/api/auth/logout` | `204` y cookie eliminada |
 
@@ -246,8 +259,9 @@ Flujo:
 3. En cada petición el servidor **solo verifica la firma**: no consulta ninguna sesión.
 4. `logout` borra la cookie con `Max-Age=0`.
 
-Códigos de error: `invalid_json` (400), `invalid_input` (400), `invalid_credentials` (401).
-Un método distinto del declarado lo rechaza Vercel antes de entrar al handler (`405`).
+Códigos de error: `invalid_json` (400), `invalid_input` (400), `invalid_credentials` (401),
+`rate_limited` (429). Un método distinto del declarado lo rechaza Vercel antes de entrar al
+handler (`405`). Los intentos fallidos de inicio de sesión se registran sin guardar la contraseña.
 
 > **Firma de las funciones:** cada archivo exporta el método HTTP que atiende
 > (`export function GET` / `export async function POST`). Con `export default`, Vercel
@@ -366,7 +380,7 @@ Los archivos adjuntos viajan con el mensaje.
 | Método | Ruta | Respuesta |
 | --- | --- | --- |
 | `GET` | `/api/emails/config` | `200` con `{ configured, from, dryRun }` · `401` sin sesión |
-| `POST` | `/api/emails/send` | `200` con `{ sent, failed, dryRun, results }` · `400` códigos de validación · `404` `election_not_found` · `401` sin sesión |
+| `POST` | `/api/emails/send` | `200` con `{ sent, failed, dryRun, results }` · `400` códigos de validación · `404` `election_not_found` · `401` sin sesión · `429` `rate_limited` |
 
 `GET /api/emails/config` solo informa si hay proveedor configurado, el remitente y si se está en
 modo simulación: la API key **nunca** sale del servidor.
@@ -413,7 +427,7 @@ El ciclo ya está completo:
 | `POST` | `/api/elections/status` | `200` con `{ election }` · `400` `invalid_input` · `404` `election_not_found` |
 | `GET` | `/api/elections/results?electionId=1` | `200` con `{ election, turnout, results }` · `401` sin sesión |
 | `GET` | `/api/vote/<token>` | `200` con `{ ballot }` · `404` `invalid_token` |
-| `POST` | `/api/vote/<token>` | `201` con `{ receipt }` · `400` `invalid_input` / `invalid_choice` / `incomplete_ballot` · `403` `draft` / `upcoming` / `closed` · `404` `invalid_token` · `409` `already_voted` |
+| `POST` | `/api/vote/<token>` | `201` con `{ receipt }` · `400` `invalid_input` / `invalid_choice` / `incomplete_ballot` · `403` `draft` / `upcoming` / `closed` · `404` `invalid_token` · `409` `already_voted` · `429` `rate_limited` |
 
 Las tres primeras rutas son de administrador. Las dos últimas son **públicas**: el token de la
 URL es la credencial y no hace falta iniciar sesión.
@@ -542,8 +556,8 @@ anterior deja de serlo y el nuevo recibe su propio enlace.
 | `POST` | `/api/questionnaires` | `201` con `{ questionnaireId, ownerToken }` · `400` `invalid_input` / `invalid_json` / `person_not_found` · `401` sin sesión |
 | `GET` | `/api/questionnaires/<id>` | `200` con el detalle · `400` `invalid_input` · `404` `questionnaire_not_found` · `401` sin sesión |
 | `GET` | `/api/questionnaire/<token>` | `200` con `{ view }` · `404` `invalid_token` / `questionnaire_not_found` |
-| `POST` | `/api/questionnaire/<token>` | `200` con `{ ok: true }` · `400` `invalid_input` / `different_questionnaire` · `403` `not_responsible` · `404` `invalid_token` |
-| `POST` | `/api/questionnaire/<token>/delegate` | `200` con `{ delegateToken }` · `400` `same_person` / `person_not_found` / `duplicate_question` · `403` `not_responsible` · `404` `invalid_token` |
+| `POST` | `/api/questionnaire/<token>` | `200` con `{ ok: true }` · `400` `invalid_input` / `different_questionnaire` · `403` `not_responsible` · `404` `invalid_token` · `429` `rate_limited` |
+| `POST` | `/api/questionnaire/<token>/delegate` | `200` con `{ delegateToken }` · `400` `same_person` / `person_not_found` / `duplicate_question` · `403` `not_responsible` · `404` `invalid_token` · `429` `rate_limited` |
 
 Las tres primeras son de administrador; las tres últimas son **públicas**: el token de la URL
 es la credencial y no hace falta iniciar sesión.
@@ -607,12 +621,42 @@ detalle con progreso, categorías, responsables actuales e historial. El enlace 
 
 ---
 
+## Auditoría y límites de peticiones
+
+Las mutaciones sensibles quedan registradas y las rutas expuestas tienen límites para frenar
+abusos. El contador vive en SQLite (`rate_limit`) con una **ventana fija**, porque en Vercel cada
+función puede ejecutarse en una instancia distinta y un contador en memoria no se compartiría.
+
+| Método | Ruta | Respuesta |
+| --- | --- | --- |
+| `GET` | `/api/audit?limit=50` | `200` con `{ events }` (máx. 200) · `400` `invalid_input` · `401` sin sesión |
+
+Cada evento guarda quién actuó, la acción, el objeto afectado y `metadata` redactada (conteos e
+identificadores). **Nunca** se guardan contraseñas, tokens de enlaces, direcciones de correo ni
+contenidos de adjuntos o respuestas. Los intentos fallidos de inicio de sesión se registran como
+`auth.login_failed` sin el correo introducido. Escribir en el registro es «best effort»: si falla,
+no se deshace una operación que ya tuvo éxito.
+
+Límites aplicados (respuesta `429` con cabeceras `Retry-After` y `X-RateLimit-*`):
+
+| Ruta | Clave | Ventana |
+| --- | --- | --- |
+| `POST /api/auth/login` | IP y correo (contadores separados) | 20 intentos / 15 min por IP, 8 / 15 min por correo |
+| `POST /api/emails/send` | Administrador autenticado | 10 / minuto |
+| `POST /api/vote/<token>` | Token del enlace | 12 / minuto |
+| `POST /api/questionnaire/<token>` | Token del enlace | 20 / minuto |
+| `POST /api/questionnaire/<token>/delegate` | Token del enlace | 20 / minuto |
+
+En la interfaz: `/admin` → tarjeta **Auditoría** (`/admin/audit`) muestra los eventos más recientes.
+
+---
+
 ## Internacionalización (es / en / ru)
 
 Sin librerías de i18n y sin APIs externas de traducción: los textos viven en el repositorio.
 
 - `src/i18n/es.json` es la **fuente de verdad**. De sus claves se deriva el tipo `TranslationKey`.
-  Hoy hay **355 claves** traducidas en los tres idiomas.
+  Hoy hay **389 claves** traducidas en los tres idiomas.
 - `en.json` y `ru.json` deben contener todas las claves de `es.json`. Si falta una,
   `npm run build` falla con `TS2741`; un typo en `t("...")` también es un error de compilación.
 - Los componentes solo usan `t("clave")`; **nunca** concatenan frases. Los errores del backend
@@ -652,6 +696,8 @@ resolverán con `Intl.PluralRules`; fechas y números siempre con `Intl.DateTime
 | `answer` | Respuesta de cada pregunta. |
 | `delegation_log` | Historial de delegaciones (quién delegó a quién y cuándo). |
 | `questionnaire_token` | Link único y estable por `(cuestionario, persona)`. |
+| `audit_log` | Registro redactado de acciones y mutaciones (quién, qué, cuándo). |
+| `rate_limit` | Contadores por ventana fija para limitar peticiones sensibles. |
 
 ### Invariantes del sistema
 
@@ -659,8 +705,9 @@ Estas reglas se garantizan en la base de datos y en la aplicación, no solo en l
 
 1. **Un voto por persona:** `UNIQUE (motion_id, person_id)` en `vote`, más el marcado de
    `ballot_token.used_at` dentro de la misma transacción.
-2. **Un solo responsable por pregunta:** `UNIQUE (question_id)` en `assignment`. Delegar es
-   un `UPDATE` atómico que registra además el cambio en `delegation_log`.
+2. **Un solo responsable por pregunta:** `assignment.question_id` es clave primaria, así que
+   delegar es un `UPDATE` dentro de una transacción que también escribe `delegation_log`.
+   Nunca se observa una pregunta con dos dueños ni sin dueño.
 3. **Ponderación histórica:** `vote.weight_at_cast` guarda el peso al momento de votar, para
    que cambiar pesos después no altere resultados ya emitidos.
 4. **Papeleta congelada:** en cuanto existe el primer voto, la API rechaza modificar
@@ -669,12 +716,14 @@ Estas reglas se garantizan en la base de datos y en la aplicación, no solo en l
 5. **Solo la ventana abierta acepta votos:** estado `open` y fechas dentro del rango se
    comprueban en el servidor en cada petición; el botón **Abrir/Cerrar** de la interfaz no es
    la única barrera.
-6. **Un solo responsable por pregunta:** `assignment.question_id` es clave primaria, así que
-   delegar es un `UPDATE` dentro de una transacción que también escribe `delegation_log`.
-   Nunca se observa una pregunta con dos dueños ni sin dueño.
-7. **Enlace estable por persona:** `UNIQUE (questionnaire_id, person_id)` en
+6. **Enlace estable por persona:** `UNIQUE (questionnaire_id, person_id)` en
    `questionnaire_token` conserva el mismo link aunque la persona delegue y recupere
    responsabilidades.
+7. **Auditoría redactada:** `audit_log` solo guarda identificadores y conteos; las contraseñas,
+   tokens de enlace, correos y contenidos sensibles nunca se almacenan ni se exponen.
+8. **Límites compartidos:** `rate_limit` usa contadores por `(bucket, identifier)` en SQLite para
+   que el límite sea el mismo en todas las instancias de Vercel; al superarlo la API responde
+   `429 rate_limited`.
 
 ---
 
@@ -726,9 +775,9 @@ mkdir -p data
 npm run db:init    # aplica db/schema.sql + las migraciones pendientes
 ```
 
-Cuando la base ya existe y llega un cambio de esquema (por ejemplo la migración
-`db/migrations/001_motion_options.sql`, que añadió las opciones libres por moción), basta con
-aplicar solo las migraciones pendientes —sin recrear ni borrar datos—:
+Cuando la base ya existe y llega un cambio de esquema (por ejemplo las migraciones de
+`db/migrations/`, que añaden tablas o columnas nuevas), basta con aplicar solo las migraciones
+pendientes —sin recrear ni borrar datos—:
 
 ```bash
 npm run db:migrate
@@ -765,6 +814,7 @@ Comprobaciones antes de commitear:
 npm run build       # tipos + bundle
 npm run lint
 npm run i18n:check  # claves, valores y placeholders de los tres idiomas
+npm run test        # pruebas permanentes (unitarias + API)
 ```
 
 Flujo en el navegador (con `vercel dev`): `/` redirige a `/admin`; sin sesión, la guardia
@@ -864,6 +914,9 @@ código funciona sin cambios.
 | 2026-11-19 | Categorización por palabras clave en tres idiomas | Función pura y sin dependencias: normaliza acentos y puntuación, cuenta coincidencias en español, inglés y ruso y usa `general` como respaldo. Evita llamar a una API de traducción o clasificación. |
 | 2026-11-19 | Responsable único con `assignment.question_id` como PK | Delegar es un `UPDATE` atómico que también escribe `delegation_log` en la misma transacción. Así nunca hay dos dueños de una pregunta y el historial queda completo. |
 | 2026-11-19 | Progreso solo agregado | Totales y desglose por categoría se calculan en el servidor; la vista pública nunca revela quién respondió qué, mientras que el detalle de administrador sí muestra respuestas e historial. |
+| 2026-11-19 | Límite de peticiones en SQLite, no en memoria | En Vercel cada invocación puede correr en otra instancia, así que un contador en RAM no se comparte. `rate_limit` guarda ventanas fijas por `(bucket, identifier)` y la API responde `429` con `Retry-After`. |
+| 2026-11-19 | Auditoría redactada y «best effort» | `audit_log` registra acciones con identificadores y conteos, nunca contraseñas, tokens, correos ni contenidos. Si la escritura falla, no se revierte la operación ya exitosa. |
+| 2026-11-19 | Pruebas permanentes con `node:test` sobre una base temporal | Se ejecutan sin servidor externo ni dependencias nuevas, usando una SQLite aislada por corrida. Cubren límites, redacción de auditoría, categorización y handlers de API. |
 
 ---
 
@@ -872,7 +925,7 @@ código funciona sin cambios.
 - [x] Definición de requisitos
 - [x] Definición de stack y modelo de datos
 - [x] Configuración del proyecto (React + TypeScript + Vite)
-- [x] Esquema de base de datos (`db/schema.sql`, 14 tablas + migraciones `001_motion_options` y `002_questionnaire_tokens`)
+- [x] Esquema de base de datos (`db/schema.sql`, 16 tablas + migraciones `001_motion_options`, `002_questionnaire_tokens` y `003_audit_and_rate_limit`)
 - [x] Autenticación en el backend (`login`, `me`, `logout` + cookie firmada)
 - [x] Layout responsivo e internacionalización (es / en / ru)
 - [x] Autenticación en el frontend (formulario, guardias de ruta, `useAuth`)
@@ -883,4 +936,4 @@ código funciona sin cambios.
 - [x] Página de votación por link único con ponderación (`/vote/<token>`)
 - [x] Papeleta editable, apertura/cierre y resultados (`/admin/ballots`, `/admin/results`)
 - [x] Cuestionarios con categorías automáticas, delegación y progreso (`/admin/questionnaires`, `/questionnaire/<token>`)
-- [ ] Endurecimiento (rate limiting, auditoría, pruebas)
+- [x] Endurecimiento (rate limiting, auditoría, pruebas permanentes)

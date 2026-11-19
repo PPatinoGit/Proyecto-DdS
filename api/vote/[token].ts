@@ -1,14 +1,18 @@
 /*
- GET  /api/vote/<token>  read the ballot identified by the link
- POST /api/vote/<token>  cast that ballot, exactly once
+  GET  /api/vote/<token>  read the ballot identified by the link
+  POST /api/vote/<token>  cast that ballot, exactly once
 
- There is no admin session here: the secret token is the credential. All
- texts in the responses are machine-readable codes so the page can translate
- them without calling a translation API.
+  There is no admin session here: the secret token is the credential. All
+  texts in the responses are machine-readable codes so the page can translate
+  them without calling a translation API. The token is used as the rate-limit
+  key but is never written to the audit log.
 */
 
 import { z } from "zod";
 import { castVote, getBallot } from "../../src/lib/votes";
+import { resolveBallotToken } from "../../src/lib/tokens";
+import { recordAudit } from "../../src/lib/audit";
+import { RATE_LIMITS, rateLimitGuard, withRateLimitHeaders } from "../../src/lib/rate-limit";
 import { VotingError } from "../../src/lib/voting";
 import { voteInputSchema } from "../../src/lib/validation";
 
@@ -60,22 +64,46 @@ export async function POST(request: Request): Promise<Response> {
   const token = tokenSchema.safeParse(tokenFrom(request));
   if (!token.success) return json({ error: "invalid_token" }, 404);
 
+  const guard = await rateLimitGuard(
+    "vote:token",
+    token.data,
+    RATE_LIMITS.vote.limit,
+    RATE_LIMITS.vote.windowMs,
+  );
+  if (guard.denied !== null) return guard.denied;
+
+  function withLimits(response: Response): Response {
+    return withRateLimitHeaders(response, guard.result, RATE_LIMITS.vote.limit);
+  }
+
   let body: unknown;
   try {
     body = await request.json();
   } catch {
-    return json({ error: "invalid_json" }, 400);
+    return withLimits(json({ error: "invalid_json" }, 400));
   }
 
   const parsed = voteInputSchema.safeParse(body);
-  if (!parsed.success) return json({ error: "invalid_input" }, 400);
+  if (!parsed.success) return withLimits(json({ error: "invalid_input" }, 400));
 
   try {
+    /* Resolve the holder only to identify the voter in the audit row. */
+    const holder = await resolveBallotToken(token.data);
     const receipt = await castVote(token.data, parsed.data.votes);
-    return json({ receipt }, 201);
+
+    await recordAudit({
+      actorType: "recipient",
+      actorId: holder?.personId ?? null,
+      action: "vote.cast",
+      targetType: "election",
+      targetId: holder?.electionId ?? null,
+      metadata: { answers: parsed.data.votes.length },
+    });
+
+    return withLimits(json({ receipt }, 201));
   } catch (error) {
-    if (error instanceof VotingError) return votingErrorResponse(error.code);
+    if (error instanceof VotingError) return withLimits(votingErrorResponse(error.code));
     console.error("Could not cast the vote", error);
-    return json({ error: "database_error" }, 500);
+    return withLimits(json({ error: "database_error" }, 500));
   }
 }

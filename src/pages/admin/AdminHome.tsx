@@ -51,6 +51,12 @@ const SECTIONS = [
     descriptionKey: "admin.sections.questionnaires.description",
     to: "/admin/questionnaires",
   },
+  {
+    id: "audit",
+    titleKey: "admin.sections.audit.title",
+    descriptionKey: "admin.sections.audit.description",
+    to: "/admin/audit",
+  },
 ] as const satisfies readonly Section[];
 
 export function AdminHome() {

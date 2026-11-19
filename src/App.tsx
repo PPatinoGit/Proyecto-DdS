@@ -14,6 +14,7 @@ import { Elections } from "./pages/admin/Elections";
 import { Emails } from "./pages/admin/Emails";
 import { Questionnaires } from "./pages/admin/Questionnaires";
 import { Results } from "./pages/admin/Results";
+import { Audit } from "./pages/admin/Audit";
 import { Voters } from "./pages/admin/Voters";
 import { Login } from "./pages/Login";
 /* Public: the emailed link authenticates the voter, not a session. */
@@ -36,6 +37,7 @@ export function App() {
         <Route path="/admin/voters" element={<Voters />} />
         <Route path="/admin/emails" element={<Emails />} />
         <Route path="/admin/questionnaires" element={<Questionnaires />} />
+        <Route path="/admin/audit" element={<Audit />} />
       </Route>
 
       <Route path="/vote/:token" element={<VotePage />} />

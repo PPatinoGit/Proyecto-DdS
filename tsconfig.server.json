@@ -37,6 +37,9 @@
     "src/lib/votes.ts",
     "src/lib/categories.ts",
     "src/lib/questionnaire-tokens.ts",
-    "src/lib/questionnaires.ts"
+    "src/lib/questionnaires.ts",
+    "src/lib/audit.ts",
+    "src/lib/rate-limit.ts",
+    "src/lib/request.ts"
   ]
 }

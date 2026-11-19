@@ -9,6 +9,7 @@
 import { z } from "zod";
 import { findElectionById } from "../../src/lib/elections";
 import { importVoters, listVoters } from "../../src/lib/voters";
+import { recordAudit } from "../../src/lib/audit";
 import { readSessionUser } from "../../src/lib/session";
 import { parseVoterCsv } from "../../src/lib/csv";
 
@@ -77,6 +78,14 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     const summary = await importVoters(parsed.data.electionId, result.rows);
+    await recordAudit({
+      actorType: "admin",
+      actorId: user.id,
+      action: "election.voters_import",
+      targetType: "election",
+      targetId: parsed.data.electionId,
+      metadata: { imported: summary.imported, total: summary.total },
+    });
     return json({ summary }, 200);
   } catch (error) {
     console.error("Could not import voters", error);

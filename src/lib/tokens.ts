@@ -45,3 +45,24 @@ export async function ensureBallotTokens(
     result.rows.map((row) => [Number(row.person_id), String(row.token)]),
   );
 }
+
+/**
+ * Resolves a link to its election and person, or null when unknown.
+ * Used by the audit trail to identify the voter without storing the token.
+ */
+export async function resolveBallotToken(
+  token: string,
+): Promise<{ electionId: number; personId: number } | null> {
+  const result = await db.execute({
+    sql: `SELECT election_id, person_id FROM ballot_token WHERE token = ?`,
+    args: [token],
+  });
+
+  const row = result.rows[0];
+  if (row === undefined) return null;
+
+  return {
+    electionId: Number(row.election_id),
+    personId: Number(row.person_id),
+  };
+}
