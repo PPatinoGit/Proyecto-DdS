@@ -106,6 +106,46 @@
   cursor: progress;
 }
 
+.login__google {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0.65rem 1rem;
+  border: 1px solid #c8ced8;
+  border-radius: 0.5rem;
+  background: #ffffff;
+  color: #1f2430;
+  font: inherit;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+}
+
+.login__google:hover {
+  background: #f4f6f9;
+}
+
+.login__google:focus-visible {
+  outline: 2px solid #2f6fed;
+  outline-offset: 1px;
+}
+
+.login__divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #8a94a3;
+  font-size: 0.85rem;
+}
+
+.login__divider::before,
+.login__divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #e1e6ee;
+}
+
 @media (max-width: 480px) {
   .login__card {
     padding: 1.5rem;

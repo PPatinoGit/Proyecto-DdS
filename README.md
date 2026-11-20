@@ -86,7 +86,7 @@ delegarse a distintas personas de la organización.
 > `data/users.json` · `db/schema.sql` · `db/migrations/{001_motion_options,002_questionnaire_tokens,003_audit_and_rate_limit}.sql` ·
 > `scripts/hash-password.mjs` · `scripts/init-db.mjs` · `scripts/migrate.mjs` ·
 > `scripts/check-i18n.mjs` · `api/auth/login.ts` · `api/auth/logout.ts` · `api/auth/me.ts` ·
-> `api/audit/index.ts` ·
+> `api/auth/google/{index,callback,config}.ts` · `api/audit/index.ts` ·
 > `api/elections/{index,voters,motions,status,results}.ts` · `api/emails/{config,send}.ts` ·
 > `api/vote/[token].ts` ·
 > `api/questionnaires/{index,[id]}.ts` · `api/questionnaire/[token].ts` ·
@@ -104,7 +104,11 @@ Proyecto DdS/
 │   ├── auth/
 │   │   ├── login.ts              # POST /api/auth/login (rate limiting + auditoría)
 │   │   ├── logout.ts             # POST /api/auth/logout
-│   │   └── me.ts                 # GET  /api/auth/me
+│   │   ├── me.ts                 # GET  /api/auth/me
+│   │   └── google/
+│   │       ├── index.ts          # GET  /api/auth/google (inicio OAuth)
+│   │       ├── callback.ts       # GET  /api/auth/google/callback
+│   │       └── config.ts         # GET  /api/auth/google/config (habilitado)
 │   ├── audit/
 │   │   └── index.ts              # GET  /api/audit (registro, solo admin)
 │   ├── elections/
@@ -177,6 +181,7 @@ Proyecto DdS/
 │   │   ├── emails.ts             # envío con Resend y modo simulación (servidor)
 │   │   ├── emails-api.ts         # llamadas tipadas a /api/emails
 │   │   ├── gender.ts             # saludo según el género del CSV
+│   │   ├── google-auth.ts        # OAuth 2.0 de Google y estado firmado (servidor)
 │   │   ├── rate-limit.ts         # límite de peticiones en SQLite (servidor)
 │   │   ├── request.ts            # IP del cliente para límites (servidor)
 │   │   ├── session.ts            # usuario de la sesión en el servidor
@@ -247,21 +252,34 @@ Reglas:
 | Método | Ruta | Respuesta |
 | --- | --- | --- |
 | `POST` | `/api/auth/login` | `200` + cookie firmada · `401` credenciales inválidas · `429` demasiados intentos |
+| `GET` | `/api/auth/google` | Redirige a Google (inicio OAuth) · redirige a `/login?error=...` si no está configurado |
+| `GET` | `/api/auth/google/callback` | Crea la sesión y redirige a la app · redirige a `/login?error=...` si falla o no autorizado |
+| `GET` | `/api/auth/google/config` | `200` con `{ configured }` (sin exponer secretos) |
 | `GET` | `/api/auth/me` | `200` con el usuario · `401` sin sesión válida |
 | `POST` | `/api/auth/logout` | `204` y cookie eliminada |
 
 Flujo:
 
-1. `login` valida el cuerpo con Zod, busca al administrador en `data/users.json` y verifica
-   la contraseña con `scrypt` (sal aleatoria por cuenta).
-2. Si coincide, firma un token HMAC-SHA256 con `{ userId, exp }` y lo envía en una cookie
-   `HttpOnly`, `SameSite=Lax` y `Secure` en producción.
-3. En cada petición el servidor **solo verifica la firma**: no consulta ninguna sesión.
-4. `logout` borra la cookie con `Max-Age=0`.
+1. **Contraseña:** `login` valida el cuerpo con Zod, busca al administrador en `data/users.json`
+   y verifica la contraseña con `scrypt` (sal aleatoria por cuenta).
+2. **Google SSO (OAuth 2.0):** `/api/auth/google` redirige a Google con un `state` firmado en
+   cookie. `/api/auth/google/callback` intercambia el código, comprueba que el correo esté
+   verificado y que coincida con un administrador existente en `data/users.json` (sin registro),
+   y solo entonces crea la sesión. Si faltan credenciales o la cuenta no está autorizada, vuelve a
+   `/login` con un código de error traducible.
+3. Si la autenticación es válida, el servidor firma un token HMAC-SHA256 con `{ userId, exp }`
+   y lo envía en una cookie `HttpOnly`, `SameSite=Lax` y `Secure` en producción.
+4. En cada petición el servidor **solo verifica la firma**: no consulta ninguna sesión.
+5. `logout` borra la cookie con `Max-Age=0`.
+
+El inicio de sesión con Google se muestra en la interfaz solo cuando `GOOGLE_CLIENT_ID` y
+`GOOGLE_CLIENT_SECRET` están configurados. La URI de redirección autorizada en Google Cloud debe
+ser `<origen>/api/auth/google/callback`.
 
 Códigos de error: `invalid_json` (400), `invalid_input` (400), `invalid_credentials` (401),
 `rate_limited` (429). Un método distinto del declarado lo rechaza Vercel antes de entrar al
-handler (`405`). Los intentos fallidos de inicio de sesión se registran sin guardar la contraseña.
+handler (`405`). Los intentos fallidos de inicio de sesión (contraseña o Google) se registran sin
+guardar la contraseña ni el correo introducido.
 
 > **Firma de las funciones:** cada archivo exporta el método HTTP que atiende
 > (`export function GET` / `export async function POST`). Con `export default`, Vercel
@@ -642,6 +660,7 @@ Límites aplicados (respuesta `429` con cabeceras `Retry-After` y `X-RateLimit-*
 | Ruta | Clave | Ventana |
 | --- | --- | --- |
 | `POST /api/auth/login` | IP y correo (contadores separados) | 20 intentos / 15 min por IP, 8 / 15 min por correo |
+| `GET /api/auth/google`, `/api/auth/google/callback` | IP del cliente | 20 intentos / 15 min |
 | `POST /api/emails/send` | Administrador autenticado | 10 / minuto |
 | `POST /api/vote/<token>` | Token del enlace | 12 / minuto |
 | `POST /api/questionnaire/<token>` | Token del enlace | 20 / minuto |
@@ -656,7 +675,7 @@ En la interfaz: `/admin` → tarjeta **Auditoría** (`/admin/audit`) muestra los
 Sin librerías de i18n y sin APIs externas de traducción: los textos viven en el repositorio.
 
 - `src/i18n/es.json` es la **fuente de verdad**. De sus claves se deriva el tipo `TranslationKey`.
-  Hoy hay **389 claves** traducidas en los tres idiomas.
+  Hoy hay **396 claves** traducidas en los tres idiomas.
 - `en.json` y `ru.json` deben contener todas las claves de `es.json`. Si falta una,
   `npm run build` falla con `TS2741`; un typo en `t("...")` también es un error de compilación.
 - Los componentes solo usan `t("clave")`; **nunca** concatenan frases. Los errores del backend
@@ -758,8 +777,12 @@ SESSION_SECRET=<32 bytes aleatorios en hex>
 # Resend (https://resend.com). Vacías = modo simulación: no se envía nada.
 RESEND_API_KEY=
 MAIL_FROM=
-# URL pública para los links de voto (opcional; en Vercel se usa el dominio del despliegue)
+# URL pública para links y callbacks OAuth (opcional; en Vercel se usa el dominio del despliegue)
 APP_URL=
+# Google OAuth 2.0 (SSO). Vacías = botón de Google deshabilitado.
+# URI de redirección: <origen>/api/auth/google/callback
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
 ```
 
 `.env` **no** se versiona. Para generar `SESSION_SECRET`:
@@ -917,6 +940,7 @@ código funciona sin cambios.
 | 2026-11-19 | Límite de peticiones en SQLite, no en memoria | En Vercel cada invocación puede correr en otra instancia, así que un contador en RAM no se comparte. `rate_limit` guarda ventanas fijas por `(bucket, identifier)` y la API responde `429` con `Retry-After`. |
 | 2026-11-19 | Auditoría redactada y «best effort» | `audit_log` registra acciones con identificadores y conteos, nunca contraseñas, tokens, correos ni contenidos. Si la escritura falla, no se revierte la operación ya exitosa. |
 | 2026-11-19 | Pruebas permanentes con `node:test` sobre una base temporal | Se ejecutan sin servidor externo ni dependencias nuevas, usando una SQLite aislada por corrida. Cubren límites, redacción de auditoría, categorización y handlers de API. |
+| 2026-11-19 | SSO de Google con OAuth 2.0 y allowlist de administradores | El flujo usa código de autorización con `state` firmado en cookie; solo se acepta un correo verificado que ya exista en `data/users.json`, sin registro. Mantiene el login por contraseña como respaldo y reutiliza la sesión firmada existente. |
 
 ---
 

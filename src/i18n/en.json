@@ -387,5 +387,12 @@
   "login.errors.rateLimited": "Too many attempts. Wait a moment before signing in again.",
   "vote.errors.rateLimited": "Too many requests. Wait a moment and try again.",
   "questionnaire.errors.rateLimited": "Too many requests. Wait a moment and try again.",
-  "admin.audit.errors.server": "The server had a problem. Try again later."
+  "admin.audit.errors.server": "The server had a problem. Try again later.",
+  "login.or": "or",
+  "login.google": "Continue with Google",
+  "login.errors.googleNotConfigured": "Google sign-in is not configured.",
+  "login.errors.googleUnauthorized": "This Google account does not have access. Use the email of a registered administrator.",
+  "login.errors.googleFailed": "Could not sign in with Google. Try again.",
+  "login.errors.googleCancelled": "Google sign-in was cancelled.",
+  "login.errors.googleState": "The Google sign-in session expired or is invalid. Try again."
 }

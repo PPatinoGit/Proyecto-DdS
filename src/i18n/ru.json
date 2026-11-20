@@ -387,5 +387,12 @@
   "login.errors.rateLimited": "Слишком много попыток. Подождите перед повторным входом.",
   "vote.errors.rateLimited": "Слишком много запросов. Подождите и попробуйте снова.",
   "questionnaire.errors.rateLimited": "Слишком много запросов. Подождите и попробуйте снова.",
-  "admin.audit.errors.server": "Сервер столкнулся с проблемой. Попробуйте позже."
+  "admin.audit.errors.server": "Сервер столкнулся с проблемой. Попробуйте позже.",
+  "login.or": "или",
+  "login.google": "Продолжить с Google",
+  "login.errors.googleNotConfigured": "Вход через Google не настроен.",
+  "login.errors.googleUnauthorized": "У этой учетной записи Google нет доступа. Используйте адрес зарегистрированного администратора.",
+  "login.errors.googleFailed": "Не удалось войти через Google. Попробуйте снова.",
+  "login.errors.googleCancelled": "Вход через Google был отменён.",
+  "login.errors.googleState": "Сеанс входа Google истёк или недействителен. Попробуйте снова."
 }

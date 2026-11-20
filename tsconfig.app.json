@@ -42,6 +42,7 @@
     "src/lib/questionnaires.ts",
     "src/lib/audit.ts",
     "src/lib/rate-limit.ts",
-    "src/lib/request.ts"
+    "src/lib/request.ts",
+    "src/lib/google-auth.ts"
   ]
 }

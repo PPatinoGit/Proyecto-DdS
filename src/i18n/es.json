@@ -387,5 +387,12 @@
   "login.errors.rateLimited": "Demasiados intentos. Espera un momento antes de volver a entrar.",
   "vote.errors.rateLimited": "Demasiadas peticiones. Espera un momento e inténtalo de nuevo.",
   "questionnaire.errors.rateLimited": "Demasiadas peticiones. Espera un momento e inténtalo de nuevo.",
-  "admin.audit.errors.server": "El servidor tuvo un problema. Inténtalo más tarde."
+  "admin.audit.errors.server": "El servidor tuvo un problema. Inténtalo más tarde.",
+  "login.or": "o",
+  "login.google": "Continuar con Google",
+  "login.errors.googleNotConfigured": "El inicio de sesión con Google no está configurado.",
+  "login.errors.googleUnauthorized": "Esta cuenta de Google no tiene acceso. Usa el correo de un administrador registrado.",
+  "login.errors.googleFailed": "No se pudo iniciar sesión con Google. Inténtalo de nuevo.",
+  "login.errors.googleCancelled": "Inicio de sesión con Google cancelado.",
+  "login.errors.googleState": "La sesión de Google expiró o no es válida. Inténtalo de nuevo."
 }
