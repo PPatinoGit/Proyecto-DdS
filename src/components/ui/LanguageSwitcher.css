@@ -1,23 +1,27 @@
 .language-switcher {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  font-size: 0.85rem;
-  color: #5b6472;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--muted);
   color-scheme: light;
 }
 
 .language-switcher__select {
-  padding: 0.3rem 0.5rem;
-  border: 1px solid #c8ced8;
-  border-radius: 0.4rem;
-  background: #ffffff;
-  color: #11141a;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 0;
+  background: var(--surface);
+  color: var(--text-h);
   font: inherit;
+  font-size: 0.8rem;
+  font-weight: 500;
   cursor: pointer;
 }
 
 .language-switcher__select:focus-visible {
-  outline: 2px solid #2f6fed;
+  outline: 2px solid var(--accent);
   outline-offset: 1px;
 }

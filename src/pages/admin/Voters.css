@@ -4,8 +4,8 @@
   flex: 1;
   padding: clamp(1rem, 3vw, 2rem);
   color-scheme: light;
-  background: #f4f6f9;
-  color: #1f2430;
+  background: var(--bg);
+  color: var(--text);
   text-align: left;
 }
 
@@ -33,7 +33,7 @@
 
 .voters__back {
   align-self: flex-start;
-  color: #2f6fed;
+  color: var(--accent);
   font-size: 0.9rem;
   text-decoration: none;
 }
@@ -47,7 +47,7 @@
   font-size: clamp(1.5rem, 4vw, 2rem);
   font-weight: 600;
   letter-spacing: -0.02em;
-  color: #11141a;
+  color: var(--text-h);
 }
 
 .voters__panel {
@@ -55,9 +55,9 @@
   flex-direction: column;
   gap: 0.9rem;
   padding: 1.5rem;
-  border-radius: 0.75rem;
-  background: #ffffff;
-  box-shadow: 0 6px 18px rgb(0 0 0 / 6%);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
 }
 
 .voters__panel-title {
@@ -69,14 +69,14 @@
   margin: 0;
   font-size: 1.1rem;
   font-weight: 600;
-  color: #11141a;
+  color: var(--text-h);
 }
 
 .voters__count {
   padding: 0.15rem 0.55rem;
   border-radius: 999px;
-  background: #eef2ff;
-  color: #2f4fa8;
+  background: var(--accent-soft);
+  color: var(--accent);
   font-size: 0.75rem;
   font-weight: 600;
   white-space: nowrap;
@@ -86,7 +86,7 @@
   margin: 0;
   font-size: 1rem;
   font-weight: 600;
-  color: #11141a;
+  color: var(--text-h);
 }
 
 .voters__field {
@@ -99,16 +99,16 @@
 
 .voters__field select {
   padding: 0.55rem 0.7rem;
-  border: 1px solid #c8ced8;
-  border-radius: 0.5rem;
-  background: #ffffff;
-  color: #11141a;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text-h);
   font: inherit;
   font-weight: 400;
 }
 
 .voters__field select:focus-visible {
-  outline: 2px solid #2f6fed;
+  outline: 2px solid var(--accent);
   outline-offset: 1px;
 }
 
@@ -116,7 +116,7 @@
   margin: 0;
   font-size: 0.85rem;
   line-height: 1.45;
-  color: #5b6472;
+  color: var(--muted);
 }
 
 .voters__file-row {
@@ -131,20 +131,20 @@
   display: inline-flex;
   align-items: center;
   padding: 0.55rem 0.9rem;
-  border-radius: 0.5rem;
-  background: #2f6fed;
-  color: #ffffff;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: var(--surface);
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
 }
 
 .voters__file-button:hover {
-  background: #255cc4;
+  background: var(--accent-hover);
 }
 
 .voters__file-button:focus-within {
-  outline: 2px solid #2f6fed;
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
@@ -159,22 +159,22 @@
 
 .voters__secondary {
   padding: 0.5rem 0.85rem;
-  border: 1px solid #c8ced8;
-  border-radius: 0.5rem;
-  background: #ffffff;
-  color: #1f2430;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
   font: inherit;
   font-size: 0.9rem;
   cursor: pointer;
 }
 
 .voters__secondary:hover {
-  background: #f1f3f6;
+  background: var(--bg-deep);
 }
 
 .voters__file-name {
   font-size: 0.85rem;
-  color: #5b6472;
+  color: var(--muted);
   overflow-wrap: anywhere;
 }
 
@@ -187,7 +187,7 @@
 .voters__message {
   margin: 0;
   padding: 0.6rem 0.75rem;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-sm);
   font-size: 0.9rem;
 }
 
@@ -196,22 +196,22 @@
 }
 
 .voters__message--error {
-  background: #fdecec;
-  color: #a11414;
+  background: var(--danger-bg);
+  color: var(--danger-text);
 }
 
 .voters__message--ok {
-  background: #e8f6ee;
-  color: #1c6b3c;
+  background: var(--success-bg);
+  color: var(--success-text);
 }
 
 .voters__retry {
   margin-top: 0.5rem;
   padding: 0.35rem 0.7rem;
-  border: 1px solid #a11414;
-  border-radius: 0.4rem;
+  border: 1px solid var(--danger-text);
+  border-radius: var(--radius-sm);
   background: transparent;
-  color: #a11414;
+  color: var(--danger-text);
   font: inherit;
   font-size: 0.85rem;
   cursor: pointer;
@@ -220,8 +220,8 @@
 .voters__table-wrap {
   max-width: 100%;
   overflow-x: auto;
-  border: 1px solid #e5e8ee;
-  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   -webkit-overflow-scrolling: touch;
 }
 
@@ -235,7 +235,7 @@
 .voters__table th,
 .voters__table td {
   padding: 0.5rem 0.65rem;
-  border-bottom: 1px solid #e5e8ee;
+  border-bottom: 1px solid var(--border);
   text-align: left;
   vertical-align: top;
   white-space: nowrap;
@@ -245,7 +245,7 @@
   background: #f7f8fb;
   font-size: 0.8rem;
   font-weight: 600;
-  color: #5b6472;
+  color: var(--muted);
 }
 
 .voters__table tbody tr:last-child td {
@@ -253,15 +253,15 @@
 }
 
 .voters__table td {
-  color: #1f2430;
+  color: var(--text);
 }
 
 .voters__row--invalid {
-  background: #fdecec;
+  background: var(--danger-bg);
 }
 
 .voters__row--invalid td {
-  color: #a11414;
+  color: var(--danger-text);
 }
 
 .voters__issues {
@@ -269,9 +269,9 @@
   overflow-y: auto;
   margin: 0;
   padding: 0.6rem 0.75rem 0.6rem 1.6rem;
-  border-radius: 0.5rem;
-  background: #fdecec;
-  color: #a11414;
+  border-radius: var(--radius-sm);
+  background: var(--danger-bg);
+  color: var(--danger-text);
   font-size: 0.85rem;
   line-height: 1.5;
 }
@@ -280,16 +280,16 @@
   align-self: flex-start;
   padding: 0.6rem 1rem;
   border: 0;
-  border-radius: 0.5rem;
-  background: #2f6fed;
-  color: #ffffff;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: var(--surface);
   font: inherit;
   font-weight: 600;
   cursor: pointer;
 }
 
 .voters__submit:hover:not(:disabled) {
-  background: #255cc4;
+  background: var(--accent-hover);
 }
 
 .voters__submit:disabled {
@@ -300,16 +300,16 @@
 .voters__link-button {
   align-self: flex-start;
   padding: 0.5rem 0.85rem;
-  border-radius: 0.5rem;
-  background: #2f6fed;
-  color: #ffffff;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: var(--surface);
   font-size: 0.9rem;
   font-weight: 600;
   text-decoration: none;
 }
 
 .voters__link-button:hover {
-  background: #255cc4;
+  background: var(--accent-hover);
 }
 
 @media (max-width: 480px) {

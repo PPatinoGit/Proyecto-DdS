@@ -102,21 +102,21 @@ export function buildEmail(input: EmailBuildInput): EmailContent {
 
   const actionHtml =
     safeUrl === null
-      ? `<p style="margin:0 0 20px;padding:12px 16px;border-radius:8px;background:#eef2ff;color:#2f4fa8;font-size:14px;">${escapeHtml(testNote)}</p>`
+      ? `<p style="margin:0 0 20px;padding:12px 16px;border-radius:8px;background:#f7ece8;color:#9b2c12;font-size:14px;">${escapeHtml(testNote)}</p>`
       : `<p style="margin:0 0 20px;">
-        <a href="${safeUrl}" style="display:inline-block;padding:12px 20px;border-radius:8px;background:#2f6fed;color:#ffffff;font-size:16px;font-weight:bold;text-decoration:none;">${escapeHtml(cta)}</a>
+        <a href="${safeUrl}" style="display:inline-block;padding:12px 20px;border-radius:8px;background:#c43c1e;color:#fffdf8;font-size:16px;font-weight:bold;text-decoration:none;">${escapeHtml(cta)}</a>
       </p>
-      <p style="margin:0 0 8px;font-size:13px;color:#5b6472;">${escapeHtml(linkFallback)}</p>
-      <p style="margin:0 0 24px;font-size:13px;word-break:break-all;"><a href="${safeUrl}" style="color:#2f6fed;">${safeUrl}</a></p>`;
+      <p style="margin:0 0 8px;font-size:13px;color:#6b6560;">${escapeHtml(linkFallback)}</p>
+      <p style="margin:0 0 24px;font-size:13px;word-break:break-all;"><a href="${safeUrl}" style="color:#c43c1e;">${safeUrl}</a></p>`;
 
   const html = `<!doctype html>
 <html lang="${language}">
-  <body style="margin:0;padding:24px;background:#f4f6f9;font-family:Arial,Helvetica,sans-serif;color:#1f2430;">
-    <div style="max-width:560px;margin:0 auto;padding:28px;background:#ffffff;border-radius:12px;">
+  <body style="margin:0;padding:24px;background:#f3efe6;font-family:Arial,Helvetica,sans-serif;color:#2a2622;">
+    <div style="max-width:560px;margin:0 auto;padding:28px;background:#fffdf8;border-radius:12px;">
       <p style="margin:0 0 16px;font-size:16px;">${escapeHtml(salutation)}</p>
       <p style="margin:0 0 20px;font-size:16px;line-height:1.55;">${toHtmlParagraphs(message)}</p>
       ${actionHtml}
-      <p style="margin:0;padding-top:16px;border-top:1px solid #e5e8ee;font-size:12px;color:#5b6472;">${escapeHtml(footer)}</p>
+      <p style="margin:0;padding-top:16px;border-top:1px solid #d6d0c4;font-size:12px;color:#6b6560;">${escapeHtml(footer)}</p>
     </div>
   </body>
 </html>`;

@@ -4,8 +4,8 @@
   flex: 1;
   padding: clamp(1rem, 3vw, 2rem);
   color-scheme: light;
-  background: #f4f6f9;
-  color: #1f2430;
+  background: var(--bg);
+  color: var(--text);
   text-align: left;
 }
 
@@ -33,7 +33,7 @@
 
 .ballots__back {
   align-self: flex-start;
-  color: #2f6fed;
+  color: var(--accent);
   font-size: 0.9rem;
   text-decoration: none;
 }
@@ -47,7 +47,7 @@
   font-size: clamp(1.5rem, 4vw, 2rem);
   font-weight: 600;
   letter-spacing: -0.02em;
-  color: #11141a;
+  color: var(--text-h);
 }
 
 .ballots__panel {
@@ -55,16 +55,16 @@
   flex-direction: column;
   gap: 0.9rem;
   padding: 1.5rem;
-  border-radius: 0.75rem;
-  background: #ffffff;
-  box-shadow: 0 6px 18px rgb(0 0 0 / 6%);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
 }
 
 .ballots__panel-title {
   margin: 0;
   font-size: 1.1rem;
   font-weight: 600;
-  color: #11141a;
+  color: var(--text-h);
 }
 
 .ballots__row {
@@ -92,10 +92,10 @@
   width: 100%;
   box-sizing: border-box;
   padding: 0.55rem 0.7rem;
-  border: 1px solid #c8ced8;
-  border-radius: 0.5rem;
-  background: #ffffff;
-  color: #11141a;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text-h);
   font: inherit;
   font-weight: 400;
 }
@@ -103,7 +103,7 @@
 .ballots__field input:focus-visible,
 .ballots__field select:focus-visible,
 .ballots__option input:focus-visible {
-  outline: 2px solid #2f6fed;
+  outline: 2px solid var(--accent);
   outline-offset: 1px;
 }
 
@@ -112,9 +112,9 @@
   flex-direction: column;
   gap: 0.15rem;
   padding: 0.3rem 0.7rem;
-  border-radius: 0.5rem;
-  background: #eef2ff;
-  color: #2f4fa8;
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+  color: var(--accent);
   font-size: 0.85rem;
 }
 
@@ -127,7 +127,7 @@
 
 .ballots__button {
   padding: 0.55rem 0.9rem;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-sm);
   font: inherit;
   font-size: 0.9rem;
   font-weight: 600;
@@ -136,22 +136,22 @@
 
 .ballots__button--primary {
   border: 0;
-  background: #2f6fed;
-  color: #ffffff;
+  background: var(--accent);
+  color: var(--surface);
 }
 
 .ballots__button--primary:hover:not(:disabled) {
-  background: #255cc4;
+  background: var(--accent-hover);
 }
 
 .ballots__button--secondary {
-  border: 1px solid #c8ced8;
-  background: #ffffff;
-  color: #1f2430;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
 }
 
 .ballots__button--secondary:hover:not(:disabled) {
-  background: #f1f3f6;
+  background: var(--bg-deep);
 }
 
 .ballots__button:disabled {
@@ -161,7 +161,7 @@
 
 .ballots__note {
   font-size: 0.85rem;
-  color: #5b6472;
+  color: var(--muted);
   line-height: 1.4;
 }
 
@@ -169,14 +169,14 @@
   margin: 0;
   font-size: 0.85rem;
   line-height: 1.45;
-  color: #5b6472;
+  color: var(--muted);
 }
 
 .ballots__locked {
   margin: 0;
   padding: 0.6rem 0.75rem;
   border-left: 4px solid #b7791f;
-  border-radius: 0.4rem;
+  border-radius: var(--radius-sm);
   background: #fff7e8;
   color: #7a4a05;
   font-size: 0.88rem;
@@ -196,7 +196,7 @@
   flex-direction: column;
   gap: 0.7rem;
   padding: 1rem;
-  border: 1px solid #e5e8ee;
+  border: 1px solid var(--border);
   border-radius: 0.6rem;
   background: #f9fafc;
 }
@@ -212,7 +212,7 @@
 .ballots__motion-index {
   font-size: 0.9rem;
   font-weight: 600;
-  color: #11141a;
+  color: var(--text-h);
 }
 
 .ballots__options {
@@ -221,16 +221,16 @@
   gap: 0.45rem;
   margin: 0;
   padding: 0.7rem;
-  border: 1px solid #e5e8ee;
-  border-radius: 0.5rem;
-  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
 }
 
 .ballots__options legend {
   padding: 0 0.3rem;
   font-size: 0.85rem;
   font-weight: 500;
-  color: #5b6472;
+  color: var(--muted);
 }
 
 .ballots__option {
@@ -243,10 +243,10 @@
 .ballots__add-option,
 .ballots__add-motion {
   padding: 0.35rem 0.6rem;
-  border: 1px solid #c8ced8;
-  border-radius: 0.4rem;
-  background: #ffffff;
-  color: #a11414;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--danger-text);
   font: inherit;
   font-size: 0.8rem;
   cursor: pointer;
@@ -255,7 +255,7 @@
 
 .ballots__add-option,
 .ballots__add-motion {
-  color: #2f4fa8;
+  color: var(--accent);
   align-self: flex-start;
 }
 
@@ -269,28 +269,28 @@
 .ballots__error {
   margin: 0;
   padding: 0.6rem 0.75rem;
-  border-radius: 0.5rem;
-  background: #fdecec;
-  color: #a11414;
+  border-radius: var(--radius-sm);
+  background: var(--danger-bg);
+  color: var(--danger-text);
   font-size: 0.9rem;
 }
 
 .ballots__ok {
   margin: 0;
   padding: 0.6rem 0.75rem;
-  border-radius: 0.5rem;
-  background: #e8f6ee;
-  color: #1c6b3c;
+  border-radius: var(--radius-sm);
+  background: var(--success-bg);
+  color: var(--success-text);
   font-size: 0.9rem;
 }
 
 .ballots__retry {
   align-self: flex-start;
   padding: 0.35rem 0.7rem;
-  border: 1px solid #a11414;
-  border-radius: 0.4rem;
+  border: 1px solid var(--danger-text);
+  border-radius: var(--radius-sm);
   background: transparent;
-  color: #a11414;
+  color: var(--danger-text);
   font: inherit;
   font-size: 0.85rem;
   cursor: pointer;
@@ -299,16 +299,16 @@
 .ballots__link-button {
   align-self: flex-start;
   padding: 0.5rem 0.85rem;
-  border-radius: 0.5rem;
-  background: #2f6fed;
-  color: #ffffff;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: var(--surface);
   font-size: 0.9rem;
   font-weight: 600;
   text-decoration: none;
 }
 
 .ballots__link-button:hover {
-  background: #255cc4;
+  background: var(--accent-hover);
 }
 
 @media (max-width: 480px) {

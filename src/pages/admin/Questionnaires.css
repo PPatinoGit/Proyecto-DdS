@@ -4,8 +4,8 @@
   flex: 1;
   padding: clamp(1rem, 3vw, 2rem);
   color-scheme: light;
-  background: #f4f6f9;
-  color: #1f2430;
+  background: var(--bg);
+  color: var(--text);
   text-align: left;
 }
 
@@ -33,7 +33,7 @@
 
 .questionnaires__back {
   align-self: flex-start;
-  color: #2f6fed;
+  color: var(--accent);
   font-size: 0.9rem;
   text-decoration: none;
 }
@@ -47,7 +47,7 @@
   font-size: clamp(1.5rem, 4vw, 2rem);
   font-weight: 600;
   letter-spacing: -0.02em;
-  color: #11141a;
+  color: var(--text-h);
 }
 
 .questionnaires__panel {
@@ -55,16 +55,16 @@
   flex-direction: column;
   gap: 0.9rem;
   padding: 1.5rem;
-  border-radius: 0.75rem;
-  background: #ffffff;
-  box-shadow: 0 6px 18px rgb(0 0 0 / 6%);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
 }
 
 .questionnaires__panel-title {
   margin: 0;
   font-size: 1.1rem;
   font-weight: 600;
-  color: #11141a;
+  color: var(--text-h);
 }
 
 .questionnaires__subtitle {
@@ -93,10 +93,10 @@
 .questionnaires__question-row input {
   width: 100%;
   padding: 0.55rem 0.7rem;
-  border: 1px solid #c8ced8;
-  border-radius: 0.5rem;
-  background: #ffffff;
-  color: #11141a;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text-h);
   font: inherit;
   font-weight: 400;
 }
@@ -104,7 +104,7 @@
 .questionnaires__field input:focus-visible,
 .questionnaires__field select:focus-visible,
 .questionnaires__question-row input:focus-visible {
-  outline: 2px solid #2f6fed;
+  outline: 2px solid var(--accent);
   outline-offset: 1px;
 }
 
@@ -114,8 +114,8 @@
   gap: 0.55rem;
   margin: 0;
   padding: 0.8rem;
-  border: 1px solid #e5e8ee;
-  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
 }
 
 .questionnaires__questions legend {
@@ -141,7 +141,7 @@
 .questionnaires__link-button {
   align-self: flex-start;
   padding: 0.5rem 0.85rem;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-sm);
   font: inherit;
   font-size: 0.9rem;
   font-weight: 600;
@@ -150,13 +150,13 @@
 }
 
 .questionnaires__primary {
-  border: 1px solid #2f6fed;
-  background: #2f6fed;
-  color: #ffffff;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: var(--surface);
 }
 
 .questionnaires__primary:hover:not(:disabled) {
-  background: #255cc4;
+  background: var(--accent-hover);
 }
 
 .questionnaires__primary:disabled {
@@ -165,24 +165,24 @@
 }
 
 .questionnaires__secondary {
-  border: 1px solid #c8ced8;
-  background: #ffffff;
+  border: 1px solid var(--border);
+  background: var(--surface);
   color: #3a4150;
 }
 
 .questionnaires__secondary:hover {
-  border-color: #2f6fed;
-  color: #2f6fed;
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .questionnaires__link-button {
-  border: 1px solid #2f6fed;
-  background: #2f6fed;
-  color: #ffffff;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: var(--surface);
 }
 
 .questionnaires__link-button:hover {
-  background: #255cc4;
+  background: var(--accent-hover);
 }
 
 .questionnaires__list,
@@ -207,32 +207,32 @@
   gap: 0.3rem 1rem;
   align-items: baseline;
   padding: 0.7rem 0.8rem;
-  border: 1px solid #e5e8ee;
-  border-radius: 0.5rem;
-  background: #ffffff;
-  color: #1f2430;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
   font: inherit;
   text-align: left;
   cursor: pointer;
 }
 
 .questionnaires__list-button:hover {
-  border-color: #2f6fed;
+  border-color: var(--accent);
 }
 
 .questionnaires__list-button--active {
-  border-color: #2f6fed;
-  background: #eef2ff;
+  border-color: var(--accent);
+  background: var(--accent-soft);
 }
 
 .questionnaires__list-button strong {
   flex: 1 1 12rem;
-  color: #11141a;
+  color: var(--text-h);
 }
 
 .questionnaires__list-button span {
   font-size: 0.85rem;
-  color: #5b6472;
+  color: var(--muted);
 }
 
 .questionnaires__detail-item {
@@ -240,8 +240,8 @@
   flex-direction: column;
   gap: 0.45rem;
   padding: 0.7rem 0.8rem;
-  border: 1px solid #e5e8ee;
-  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   font-size: 0.9rem;
 }
 
@@ -258,20 +258,20 @@
 .questionnaires__tag {
   padding: 0.15rem 0.45rem;
   border-radius: 0.35rem;
-  background: #eef2ff;
-  color: #2f4fa8;
+  background: var(--accent-soft);
+  color: var(--accent);
   font-size: 0.78rem;
 }
 
 .questionnaires__tag--ok {
   background: #e6f5ec;
-  color: #1c6b3c;
+  color: var(--success-text);
 }
 
 .questionnaires__answer {
   margin: 0;
   padding: 0.5rem 0.6rem;
-  border-left: 3px solid #2f6fed;
+  border-left: 3px solid var(--accent);
   background: #f7f9fc;
   color: #3a4150;
   font-size: 0.88rem;
@@ -281,9 +281,9 @@
 
 .questionnaires__category {
   padding: 0.45rem 0.6rem;
-  border-radius: 0.4rem;
-  background: #eef2ff;
-  color: #2f4fa8;
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+  color: var(--accent);
   font-size: 0.88rem;
 }
 
@@ -304,10 +304,10 @@
 .questionnaires__link {
   flex: 1 1 18rem;
   padding: 0.5rem 0.6rem;
-  border: 1px solid #e5e8ee;
-  border-radius: 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   background: #f7f9fc;
-  color: #2f4fa8;
+  color: var(--accent);
   font-size: 0.8rem;
   overflow-wrap: anywhere;
 }
@@ -317,9 +317,9 @@
   flex-direction: column;
   gap: 0.5rem;
   padding: 0.8rem;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-sm);
   background: #e6f5ec;
-  color: #1c6b3c;
+  color: var(--success-text);
   font-size: 0.88rem;
 }
 
@@ -330,31 +330,31 @@
 .questionnaires__copied {
   margin: 0;
   font-size: 0.82rem;
-  color: #1c6b3c;
+  color: var(--success-text);
 }
 
 .questionnaires__hint {
   margin: 0;
   font-size: 0.85rem;
   line-height: 1.45;
-  color: #5b6472;
+  color: var(--muted);
 }
 
 .questionnaires__inline-error {
   margin: 0;
-  color: #a11414;
+  color: var(--danger-text);
   font-size: 0.88rem;
 }
 
 .questionnaires__error {
-  color: #a11414;
-  background: #fdecec;
+  color: var(--danger-text);
+  background: var(--danger-bg);
 }
 
 .questionnaires__retry {
-  border: 1px solid #a11414;
+  border: 1px solid var(--danger-text);
   background: transparent;
-  color: #a11414;
+  color: var(--danger-text);
 }
 
 @media (max-width: 480px) {

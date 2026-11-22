@@ -4,8 +4,8 @@
   flex: 1;
   padding: clamp(1rem, 3vw, 2rem);
   color-scheme: light;
-  background: #f4f6f9;
-  color: #1f2430;
+  background: var(--bg);
+  color: var(--text);
   text-align: left;
 }
 
@@ -28,14 +28,14 @@
   font-size: clamp(1.5rem, 4vw, 2rem);
   font-weight: 600;
   letter-spacing: -0.02em;
-  color: #11141a;
+  color: var(--text-h);
 }
 
 .questionnaire__subtitle {
   margin: 0;
   font-size: 1.2rem;
   font-weight: 600;
-  color: #11141a;
+  color: var(--text-h);
 }
 
 .questionnaire__panel {
@@ -43,30 +43,30 @@
   flex-direction: column;
   gap: 0.8rem;
   padding: 1.5rem;
-  border-radius: 0.75rem;
-  background: #ffffff;
-  box-shadow: 0 6px 18px rgb(0 0 0 / 6%);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
 }
 
 .questionnaire__panel-title {
   margin: 0;
   font-size: 1.1rem;
   font-weight: 600;
-  color: #11141a;
+  color: var(--text-h);
 }
 
 .questionnaire__greeting {
   margin: 0;
   font-size: 1rem;
   font-weight: 600;
-  color: #2f4fa8;
+  color: var(--accent);
 }
 
 .questionnaire__hint {
   margin: 0;
   font-size: 0.85rem;
   line-height: 1.45;
-  color: #5b6472;
+  color: var(--muted);
 }
 
 .questionnaire__summary {
@@ -88,9 +88,9 @@
 
 .questionnaire__category {
   padding: 0.4rem 0.55rem;
-  border-radius: 0.4rem;
-  background: #eef2ff;
-  color: #2f4fa8;
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+  color: var(--accent);
   font-size: 0.85rem;
 }
 
@@ -99,8 +99,8 @@
   flex-direction: column;
   gap: 0.6rem;
   padding: 0.9rem;
-  border: 1px solid #e5e8ee;
-  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
 }
 
 .questionnaire__question--muted {
@@ -117,14 +117,14 @@
   align-self: flex-start;
   padding: 0.15rem 0.45rem;
   border-radius: 0.35rem;
-  background: #eef2ff;
-  color: #2f4fa8;
+  background: var(--accent-soft);
+  color: var(--accent);
   font-size: 0.78rem;
 }
 
 .questionnaire__tag--ok {
   background: #e6f5ec;
-  color: #1c6b3c;
+  color: var(--success-text);
 }
 
 .questionnaire__field {
@@ -139,10 +139,10 @@
 .questionnaire__field select {
   width: 100%;
   padding: 0.55rem 0.7rem;
-  border: 1px solid #c8ced8;
-  border-radius: 0.5rem;
-  background: #ffffff;
-  color: #11141a;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text-h);
   font: inherit;
   font-weight: 400;
 }
@@ -154,7 +154,7 @@
 
 .questionnaire__field textarea:focus-visible,
 .questionnaire__field select:focus-visible {
-  outline: 2px solid #2f6fed;
+  outline: 2px solid var(--accent);
   outline-offset: 1px;
 }
 
@@ -170,7 +170,7 @@
 .questionnaire__retry {
   align-self: flex-start;
   padding: 0.5rem 0.85rem;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-sm);
   font: inherit;
   font-size: 0.9rem;
   font-weight: 600;
@@ -178,13 +178,13 @@
 }
 
 .questionnaire__primary {
-  border: 1px solid #2f6fed;
-  background: #2f6fed;
-  color: #ffffff;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: var(--surface);
 }
 
 .questionnaire__primary:hover:not(:disabled) {
-  background: #255cc4;
+  background: var(--accent-hover);
 }
 
 .questionnaire__primary:disabled,
@@ -194,14 +194,14 @@
 }
 
 .questionnaire__secondary {
-  border: 1px solid #c8ced8;
-  background: #ffffff;
+  border: 1px solid var(--border);
+  background: var(--surface);
   color: #3a4150;
 }
 
 .questionnaire__secondary:hover:not(:disabled) {
-  border-color: #2f6fed;
-  color: #2f6fed;
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .questionnaire__form {
@@ -216,8 +216,8 @@
   gap: 0.45rem;
   margin: 0;
   padding: 0.8rem;
-  border: 1px solid #e5e8ee;
-  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
 }
 
 .questionnaire__selection legend {
@@ -237,7 +237,7 @@
 
 .questionnaire__check input {
   margin-top: 0.2rem;
-  accent-color: #2f6fed;
+  accent-color: var(--accent);
 }
 
 .questionnaire__link-box {
@@ -246,17 +246,17 @@
   gap: 0.5rem;
   align-items: flex-start;
   padding: 0.8rem;
-  border-radius: 0.5rem;
-  background: #eef2ff;
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
 }
 
 .questionnaire__link {
   width: 100%;
   padding: 0.5rem 0.6rem;
-  border: 1px solid #c8ced8;
-  border-radius: 0.4rem;
-  background: #ffffff;
-  color: #2f4fa8;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--accent);
   font-size: 0.8rem;
   overflow-wrap: anywhere;
 }
@@ -264,15 +264,15 @@
 .questionnaire__copied {
   margin: 0;
   font-size: 0.82rem;
-  color: #1c6b3c;
+  color: var(--success-text);
 }
 
 .questionnaire__success {
   margin: 0;
   padding: 0.7rem 0.8rem;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-sm);
   background: #e6f5ec;
-  color: #1c6b3c;
+  color: var(--success-text);
   font-size: 0.9rem;
 }
 
@@ -281,9 +281,9 @@
   flex-direction: column;
   gap: 0.6rem;
   padding: 1rem;
-  border-radius: 0.75rem;
-  background: #fdecec;
-  color: #a11414;
+  border-radius: var(--radius);
+  background: var(--danger-bg);
+  color: var(--danger-text);
 }
 
 .questionnaire__error p {
@@ -291,9 +291,9 @@
 }
 
 .questionnaire__retry {
-  border: 1px solid #a11414;
+  border: 1px solid var(--danger-text);
   background: transparent;
-  color: #a11414;
+  color: var(--danger-text);
 }
 
 @media (max-width: 480px) {
