@@ -3,6 +3,12 @@
     "api/emails/[...route].ts": { "maxDuration": 30 }
   },
   "rewrites": [
+    { "source": "/api/auth/(.*)", "destination": "/api/auth/[...route]" },
+    { "source": "/api/elections/(.*)", "destination": "/api/elections/[...route]" },
+    { "source": "/api/emails/(.*)", "destination": "/api/emails/[...route]" },
+    { "source": "/api/questionnaire/(.*)", "destination": "/api/questionnaire/[...route]" },
+    { "source": "/api/questionnaires/(.*)", "destination": "/api/questionnaires/[...route]" },
+    { "source": "/api/vote/(.*)", "destination": "/api/vote/[...route]" },
     { "source": "/login", "destination": "/index.html" },
     { "source": "/admin", "destination": "/index.html" },
     { "source": "/admin/(.*)", "destination": "/index.html" },
