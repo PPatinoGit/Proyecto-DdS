@@ -6,6 +6,20 @@
       "name": "Administrador Demo",
       "role": "admin",
       "passwordHash": "scrypt$8e81321e46a1221377dfe49174662df1$39720f25b3110c61279d10eba3df56034be032850b894366400a03c7947897bcd1e8fdeea0b5c7a82c0853490960eccccd093d95c54c3b1f827a36b8f3f43c0e"
+    },
+    {
+      "id": "admin-2",
+      "email": "bardok311@gmail.com",
+      "name": "Bardok311",
+      "role": "admin",
+      "passwordHash": "scrypt$868f1826ea80ba867486448b0d4901a5$d4702a6dd53c30c3b750ebf018f8f6a8d80f23854a999758f98bf1a24c6f1155c7e086d59ca7be6b8e9011df7a655706dc03a4655b6950c650856c8e56ec2537"
+    },
+    {
+      "id": "admin-3",
+      "email": "papatino@alumnos.uai.cl",
+      "name": "Papatino",
+      "role": "admin",
+      "passwordHash": "scrypt$62ffa0372ae3f493d1fdc00114dadbc9$84e9fb1dd66e6eb54262c484520f893a7fba50d0d785288e48e34360933252ab6c1c95721ec3ca21471c5042b149486aed94776d39b9fed386bd415dec09a7d7"
     }
   ]
 }
