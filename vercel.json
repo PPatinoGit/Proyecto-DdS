@@ -1,6 +1,12 @@
 {
   "functions": {
-    "api/emails/[...route].ts": { "maxDuration": 30 }
+    "api/audit.ts": { "includeFiles": "{src/**,data/**}" },
+    "api/auth/[...route].ts": { "includeFiles": "{src/**,data/**}" },
+    "api/elections/[...route].ts": { "includeFiles": "{src/**,data/**}" },
+    "api/emails/[...route].ts": { "maxDuration": 30, "includeFiles": "{src/**,data/**}" },
+    "api/questionnaire/[...route].ts": { "includeFiles": "{src/**,data/**}" },
+    "api/questionnaires/[...route].ts": { "includeFiles": "{src/**,data/**}" },
+    "api/vote/[...route].ts": { "includeFiles": "{src/**,data/**}" }
   },
   "rewrites": [
     { "source": "/login", "destination": "/index.html" },
