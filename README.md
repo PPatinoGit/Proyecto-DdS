@@ -47,7 +47,7 @@ delegarse a distintas personas de la organización.
 ## Características de la página
 
 - **Responsiva:** se adapta a cualquier tamaño de pantalla.
-- **Autenticación:** login con usuario y contraseña para administradores.
+- **Autenticación:** login de administradores con usuario y contraseña, y SSO con Google (OAuth 2.0) para correos autorizados en el allowlist.
 - **Multilenguaje a medida:** diccionarios propios (sin API externa como Google Translate).
 
 ## Características del código
@@ -67,7 +67,7 @@ delegarse a distintas personas de la organización.
 | Backend | Node.js (Vercel Functions en `/api`) |
 | Base de datos | SQLite vía libSQL (`file:` en local, **Turso** en producción) |
 | Usuarios | Catálogo fijo de administradores en `data/users.json` |
-| Autenticación | Usuario y contraseña (hash `scrypt`) + cookie `HttpOnly` |
+| Autenticación | Usuario y contraseña (hash `scrypt`) + Google SSO (OAuth 2.0) + cookie `HttpOnly` firmada |
 | Validación | Zod |
 | Correo | Resend (API HTTP, sin SDK) |
 
@@ -84,14 +84,10 @@ delegarse a distintas personas de la organización.
 > hasta ahora:
 >
 > `data/users.json` · `db/schema.sql` · `db/migrations/{001_motion_options,002_questionnaire_tokens,003_audit_and_rate_limit}.sql` ·
-> `scripts/hash-password.mjs` · `scripts/init-db.mjs` · `scripts/migrate.mjs` ·
-> `scripts/check-i18n.mjs` · `api/auth/login.ts` · `api/auth/logout.ts` · `api/auth/me.ts` ·
-> `api/auth/google/{index,callback,config}.ts` · `api/audit/index.ts` ·
-> `api/elections/{index,voters,motions,status,results}.ts` · `api/emails/{config,send}.ts` ·
-> `api/vote/[token].ts` ·
-> `api/questionnaires/{index,[id]}.ts` · `api/questionnaire/[token].ts` ·
-> `api/questionnaire/[token]/delegate.ts` ·
-> `src/lib/{auth,db,users,api,auth-api,elections,elections-api,voters,voters-api,csv,session,types,emails,emails-api,tokens,email-template,email-limits,gender,voting,motions,votes,categories,questionnaire-tokens,questionnaires,questionnaires-api,questionnaire-link-api,motions-api,results-api,vote-api,audit,audit-api,rate-limit,request}.ts` ·
+> `scripts/{hash-password,init-db,migrate,check-i18n}.mjs` ·
+> `api/{audit.ts,auth/[...route].ts,elections/[...route].ts,emails/[...route].ts,questionnaire/[...route].ts,questionnaires/[...route].ts,vote/[...route].ts}` ·
+> `src/api-handlers/{audit,auth/{login,logout,me,google/{index,callback,config}},elections/{index,voters,motions,status,results},emails/{config,send},questionnaires/{index,[id]},questionnaire/[token]/{index,delegate},vote/[token]}.ts` ·
+> `src/lib/{auth,db,users,api,auth-api,elections,elections-api,voters,voters-api,csv,session,types,emails,emails-api,tokens,email-template,email-limits,gender,voting,motions,votes,categories,questionnaire-tokens,questionnaires,questionnaires-api,questionnaire-link-api,motions-api,results-api,vote-api,audit,audit-api,rate-limit,request,google-auth,validation}.ts` ·
 > `src/hooks/useAuth.ts` · `src/components/auth/{AuthProvider,route-guards}` ·
 > `src/components/ui/{LanguageSwitcher,FullScreenLoader}` · `src/i18n/` ·
 > `src/pages/Login.tsx` · `src/pages/admin/{AdminHome,Elections,Voters,Emails,Ballots,Results,Questionnaires,Audit}.tsx` ·
@@ -100,35 +96,14 @@ delegarse a distintas personas de la organización.
 
 ```
 Proyecto DdS/
-├── api/                          # Vercel Functions (backend)
-│   ├── auth/
-│   │   ├── login.ts              # POST /api/auth/login (rate limiting + auditoría)
-│   │   ├── logout.ts             # POST /api/auth/logout
-│   │   ├── me.ts                 # GET  /api/auth/me
-│   │   └── google/
-│   │       ├── index.ts          # GET  /api/auth/google (inicio OAuth)
-│   │       ├── callback.ts       # GET  /api/auth/google/callback
-│   │       └── config.ts         # GET  /api/auth/google/config (habilitado)
-│   ├── audit/
-│   │   └── index.ts              # GET  /api/audit (registro, solo admin)
-│   ├── elections/
-│   │   ├── index.ts              # GET/POST /api/elections (listar / crear)
-│   │   ├── voters.ts             # GET/POST /api/elections/voters (censo / importar CSV)
-│   │   ├── motions.ts            # GET/POST /api/elections/motions (papeleta / guardar)
-│   │   ├── status.ts             # POST /api/elections/status (abrir / cerrar)
-│   │   └── results.ts            # GET  /api/elections/results (resultados ponderados)
-│   ├── emails/
-│   │   ├── config.ts             # GET  /api/emails/config (proveedor / modo simulación)
-│   │   └── send.ts               # POST /api/emails/send (lote de correos o prueba)
-│   ├── vote/
-│   │   └── [token].ts            # GET/POST /api/vote/<token> (leer papeleta / votar)
-│   ├── questionnaires/
-│   │   ├── index.ts              # GET/POST /api/questionnaires (listar / crear)
-│   │   └── [id].ts               # GET  /api/questionnaires/<id> (detalle)
-│   └── questionnaire/
-│       ├── [token].ts            # GET/POST /api/questionnaire/<token> (leer / responder)
-│       └── [token]/
-│           └── delegate.ts       # POST /api/questionnaire/<token>/delegate
+├── api/                          # Vercel Functions (rutas agrupadas, límite Hobby)
+│   ├── audit.ts                  # GET  /api/audit
+│   ├── auth/[...route].ts        # /api/auth/* (login, logout, me, google/*)
+│   ├── elections/[...route].ts   # /api/elections/* (CRUD, voters, motions, status, results)
+│   ├── emails/[...route].ts      # /api/emails/* (config, send)
+│   ├── questionnaires/[...route].ts # /api/questionnaires/*
+│   ├── questionnaire/[...route].ts  # /api/questionnaire/<token>/*
+│   └── vote/[...route].ts        # /api/vote/<token>
 ├── data/
 │   ├── users.json                # cuentas de administrador (solo lectura, se versiona)
 │   └── dev.db                    # SQLite local (NO se versiona)
@@ -166,6 +141,7 @@ Proyecto DdS/
 │   │   ├── I18nProvider.tsx      # idioma actual y persistencia
 │   │   ├── language-labels.ts    # nombres de los idiomas (interfaz y correo)
 │   │   └── index.ts              # tipos, diccionarios y translate()
+│   ├── api-handlers/             # lógica de handlers usada por las rutas agrupadas de /api
 │   ├── lib/
 │   │   ├── api.ts                # cliente HTTP (ApiError)
 │   │   ├── audit.ts              # registro redactado de mutaciones (servidor)

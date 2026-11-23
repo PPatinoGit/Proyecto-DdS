@@ -10,7 +10,7 @@ export type AdminUser = {
   id: string;
   email: string;
   name: string;
-  role: "admin"; // unión literal: hoy solo existe el rol "admin"
+  role: "admin"; // literal union: only the "admin" role exists today
   passwordHash: string;
 };
 

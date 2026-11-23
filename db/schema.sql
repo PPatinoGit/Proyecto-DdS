@@ -79,7 +79,7 @@ CREATE TABLE IF NOT EXISTS question (
   position         INTEGER NOT NULL DEFAULT 0
 );
 
--- UNIQUE garantiza que solo una persona sea responsable de cada pregunta.
+-- UNIQUE guarantees that only one person is responsible for each question.
 CREATE TABLE IF NOT EXISTS assignment (
   question_id  INTEGER PRIMARY KEY REFERENCES question(id) ON DELETE CASCADE,
   assignee_id  INTEGER NOT NULL REFERENCES person(id),
