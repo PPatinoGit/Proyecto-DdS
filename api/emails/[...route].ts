@@ -1,5 +1,5 @@
-import * as config from "../_handlers/emails/config";
-import * as send from "../_handlers/emails/send";
+import * as config from "../../src/api-handlers/emails/config";
+import * as send from "../../src/api-handlers/emails/send";
 
 type Handler = {
   GET?: (request: Request) => Response | Promise<Response>;

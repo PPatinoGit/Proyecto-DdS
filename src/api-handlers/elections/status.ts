@@ -5,10 +5,10 @@
  it. Moving back to draft is not offered: that would hide ballots already cast.
 */
 
-import { updateElectionStatus } from "../../../src/lib/elections";
-import { recordAudit } from "../../../src/lib/audit";
-import { readSessionUser } from "../../../src/lib/session";
-import { electionStatusSchema } from "../../../src/lib/validation";
+import { updateElectionStatus } from "../../lib/elections";
+import { recordAudit } from "../../lib/audit";
+import { readSessionUser } from "../../lib/session";
+import { electionStatusSchema } from "../../lib/validation";
 
 function json(data: unknown, status: number): Response {
   return new Response(JSON.stringify(data), {

@@ -12,25 +12,25 @@
 */
 
 import { Buffer } from "node:buffer";
-import { findElectionById } from "../../../src/lib/elections";
-import { findRosterPeople } from "../../../src/lib/voters";
-import { ensureBallotTokens } from "../../../src/lib/tokens";
-import { buildEmail, type EmailRecipient } from "../../../src/lib/email-template";
+import { findElectionById } from "../../lib/elections";
+import { findRosterPeople } from "../../lib/voters";
+import { ensureBallotTokens } from "../../lib/tokens";
+import { buildEmail, type EmailRecipient } from "../../lib/email-template";
 import {
   MailSendError,
   getMailConfig,
   sendMail,
   type OutgoingAttachment,
-} from "../../../src/lib/emails";
+} from "../../lib/emails";
 import {
   MAX_ATTACHMENT_BYTES,
   MAX_ATTACHMENTS_TOTAL_BYTES,
-} from "../../../src/lib/email-limits";
-import { readSessionUser } from "../../../src/lib/session";
-import { recordAudit } from "../../../src/lib/audit";
-import { RATE_LIMITS, rateLimitGuard, withRateLimitHeaders } from "../../../src/lib/rate-limit";
-import { emailSendSchema } from "../../../src/lib/validation";
-import type { MailRecipientResult } from "../../../src/lib/types";
+} from "../../lib/email-limits";
+import { readSessionUser } from "../../lib/session";
+import { recordAudit } from "../../lib/audit";
+import { RATE_LIMITS, rateLimitGuard, withRateLimitHeaders } from "../../lib/rate-limit";
+import { emailSendSchema } from "../../lib/validation";
+import type { MailRecipientResult } from "../../lib/types";
 
 /* Resend is happier with few parallel requests; a chunk of 6 finishes fast. */
 const CONCURRENCY = 3;

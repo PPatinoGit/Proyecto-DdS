@@ -5,7 +5,7 @@
   and carries the safe in-app path to return to after sign-in.
 */
 
-import { recordAudit } from "../../../../src/lib/audit";
+import { recordAudit } from "../../../lib/audit";
 import {
   buildGoogleAuthUrl,
   clearStateCookie,
@@ -13,9 +13,9 @@ import {
   getGoogleConfig,
   googleCallbackUrl,
   safeReturnPath,
-} from "../../../../src/lib/google-auth";
-import { RATE_LIMITS, rateLimitGuard } from "../../../../src/lib/rate-limit";
-import { clientIp } from "../../../../src/lib/request";
+} from "../../../lib/google-auth";
+import { RATE_LIMITS, rateLimitGuard } from "../../../lib/rate-limit";
+import { clientIp } from "../../../lib/request";
 
 function redirect(location: string, headers: Record<string, string> = {}): Response {
   return new Response(null, { status: 302, headers: { location, ...headers } });

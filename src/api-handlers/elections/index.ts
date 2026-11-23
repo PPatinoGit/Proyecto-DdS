@@ -3,10 +3,10 @@
 
    Both require a valid admin session: elections are not public data. */
 
-import { createElection, listElections } from "../../../src/lib/elections";
-import { recordAudit } from "../../../src/lib/audit";
-import { readSessionUser } from "../../../src/lib/session";
-import { electionInputSchema } from "../../../src/lib/validation";
+import { createElection, listElections } from "../../lib/elections";
+import { recordAudit } from "../../lib/audit";
+import { readSessionUser } from "../../lib/session";
+import { electionInputSchema } from "../../lib/validation";
 
 function json(data: unknown, status: number): Response {
   return new Response(JSON.stringify(data), {

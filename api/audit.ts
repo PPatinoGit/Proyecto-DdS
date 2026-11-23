@@ -1,4 +1,4 @@
-import * as handler from "./_handlers/audit/index";
+import * as handler from "../src/api-handlers/audit/index";
 
 export function GET(request: Request): Response | Promise<Response> {
   return handler.GET(request);

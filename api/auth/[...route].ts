@@ -1,9 +1,9 @@
-import * as googleCallback from "../_handlers/auth/google/callback";
-import * as googleConfig from "../_handlers/auth/google/config";
-import * as googleIndex from "../_handlers/auth/google/index";
-import * as login from "../_handlers/auth/login";
-import * as logout from "../_handlers/auth/logout";
-import * as me from "../_handlers/auth/me";
+import * as googleCallback from "../../src/api-handlers/auth/google/callback";
+import * as googleConfig from "../../src/api-handlers/auth/google/config";
+import * as googleIndex from "../../src/api-handlers/auth/google/index";
+import * as login from "../../src/api-handlers/auth/login";
+import * as logout from "../../src/api-handlers/auth/logout";
+import * as me from "../../src/api-handlers/auth/me";
 
 type Handler = {
   GET?: (request: Request) => Response | Promise<Response>;

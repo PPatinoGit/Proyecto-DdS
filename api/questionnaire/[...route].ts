@@ -1,5 +1,5 @@
-import * as delegate from "../_handlers/questionnaire/[token]/delegate";
-import * as token from "../_handlers/questionnaire/[token]";
+import * as delegate from "../../src/api-handlers/questionnaire/[token]/delegate";
+import * as token from "../../src/api-handlers/questionnaire/[token]";
 
 type Handler = {
   GET?: (request: Request) => Response | Promise<Response>;

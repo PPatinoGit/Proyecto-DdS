@@ -14,6 +14,7 @@
   },
   "include": [
     ".",
-    "../src/lib"
+    "../src/lib",
+    "../src/api-handlers"
   ]
 }

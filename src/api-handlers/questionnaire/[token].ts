@@ -13,11 +13,11 @@ import {
   answerQuestion,
   getQuestionnaireView,
   QuestionnaireError,
-} from "../../../src/lib/questionnaires";
-import { resolveQuestionnaireToken } from "../../../src/lib/questionnaire-tokens";
-import { recordAudit } from "../../../src/lib/audit";
-import { RATE_LIMITS, rateLimitGuard, withRateLimitHeaders } from "../../../src/lib/rate-limit";
-import { questionnaireAnswerSchema } from "../../../src/lib/validation";
+} from "../../lib/questionnaires";
+import { resolveQuestionnaireToken } from "../../lib/questionnaire-tokens";
+import { recordAudit } from "../../lib/audit";
+import { RATE_LIMITS, rateLimitGuard, withRateLimitHeaders } from "../../lib/rate-limit";
+import { questionnaireAnswerSchema } from "../../lib/validation";
 
 const tokenSchema = z.string().regex(/^[A-Za-z0-9_-]{32}$/);
 
