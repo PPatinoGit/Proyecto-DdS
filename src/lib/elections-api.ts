@@ -4,8 +4,8 @@
  Like auth-api.ts, this module only describes the HTTP API: no React, no state.
 */
 
-import { apiFetch } from "./api";
-import type { Election, ElectionInput } from "./types";
+import { apiFetch } from "./api.js";
+import type { Election, ElectionInput } from "./types.js";
 
 /** GET /api/elections: 401 when there is no valid session. */
 export function fetchElections(signal?: AbortSignal): Promise<{ elections: Election[] }> {

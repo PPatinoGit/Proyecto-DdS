@@ -12,25 +12,25 @@
 */
 
 import { Buffer } from "node:buffer";
-import { findElectionById } from "../../lib/elections";
-import { findRosterPeople } from "../../lib/voters";
-import { ensureBallotTokens } from "../../lib/tokens";
-import { buildEmail, type EmailRecipient } from "../../lib/email-template";
+import { findElectionById } from "../../lib/elections.js";
+import { findRosterPeople } from "../../lib/voters.js";
+import { ensureBallotTokens } from "../../lib/tokens.js";
+import { buildEmail, type EmailRecipient } from "../../lib/email-template.js";
 import {
   MailSendError,
   getMailConfig,
   sendMail,
   type OutgoingAttachment,
-} from "../../lib/emails";
+} from "../../lib/emails.js";
 import {
   MAX_ATTACHMENT_BYTES,
   MAX_ATTACHMENTS_TOTAL_BYTES,
-} from "../../lib/email-limits";
-import { readSessionUser } from "../../lib/session";
-import { recordAudit } from "../../lib/audit";
-import { RATE_LIMITS, rateLimitGuard, withRateLimitHeaders } from "../../lib/rate-limit";
-import { emailSendSchema } from "../../lib/validation";
-import type { MailRecipientResult } from "../../lib/types";
+} from "../../lib/email-limits.js";
+import { readSessionUser } from "../../lib/session.js";
+import { recordAudit } from "../../lib/audit.js";
+import { RATE_LIMITS, rateLimitGuard, withRateLimitHeaders } from "../../lib/rate-limit.js";
+import { emailSendSchema } from "../../lib/validation.js";
+import type { MailRecipientResult } from "../../lib/types.js";
 
 /* Resend is happier with few parallel requests; a chunk of 6 finishes fast. */
 const CONCURRENCY = 3;

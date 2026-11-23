@@ -2,8 +2,8 @@
  Typed calls to the ballot editor endpoints.
 */
 
-import { apiFetch } from "./api";
-import type { Election, Motion } from "./types";
+import { apiFetch } from "./api.js";
+import type { Election, Motion } from "./types.js";
 
 export type BallotDefinition = {
   election: Election;

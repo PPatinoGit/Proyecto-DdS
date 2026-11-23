@@ -6,11 +6,11 @@
  an option would change the meaning of votes already recorded.
 */
 
-import { db } from "./db";
-import { findElectionById } from "./elections";
-import { VotingError } from "./voting";
-import type { Motion, MotionOption } from "./types";
-import type { MotionsInputPayload } from "./validation";
+import { db } from "./db.js";
+import { findElectionById } from "./elections.js";
+import { VotingError } from "./voting.js";
+import type { Motion, MotionOption } from "./types.js";
+import type { MotionsInputPayload } from "./validation.js";
 
 type MotionRow = { id: number; title: string; position: number };
 type OptionRow = { id: number; motion_id: number; label: string; position: number };

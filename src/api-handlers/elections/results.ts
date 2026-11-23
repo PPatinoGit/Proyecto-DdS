@@ -6,8 +6,8 @@
 */
 
 import { z } from "zod";
-import { readSessionUser } from "../../lib/session";
-import { getResults } from "../../lib/votes";
+import { readSessionUser } from "../../lib/session.js";
+import { getResults } from "../../lib/votes.js";
 
 const idSchema = z.coerce.number().int().positive();
 

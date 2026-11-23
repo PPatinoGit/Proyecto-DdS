@@ -13,14 +13,14 @@
 */
 
 import { randomBytes } from "node:crypto";
-import { db } from "./db";
-import { CATEGORY_KEYS, categorizeQuestion } from "./categories";
-import { resolveQuestionnaireToken } from "./questionnaire-tokens";
+import { db } from "./db.js";
+import { CATEGORY_KEYS, categorizeQuestion } from "./categories.js";
+import { resolveQuestionnaireToken } from "./questionnaire-tokens.js";
 import type {
   QuestionnaireAnswerPayload,
   QuestionnaireDelegationPayload,
   QuestionnaireInputPayload,
-} from "./validation";
+} from "./validation.js";
 import type {
   CategoryKey,
   DelegationEvent,
@@ -30,7 +30,7 @@ import type {
   QuestionnaireProgress,
   QuestionnaireQuestion,
   QuestionnaireView,
-} from "./types";
+} from "./types.js";
 
 /** Machine-readable failures; the API maps each code to an HTTP status. */
 export class QuestionnaireError extends Error {

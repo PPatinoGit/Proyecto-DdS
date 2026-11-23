@@ -1,9 +1,9 @@
-import * as googleCallback from "../../src/api-handlers/auth/google/callback";
-import * as googleConfig from "../../src/api-handlers/auth/google/config";
-import * as googleIndex from "../../src/api-handlers/auth/google/index";
-import * as login from "../../src/api-handlers/auth/login";
-import * as logout from "../../src/api-handlers/auth/logout";
-import * as me from "../../src/api-handlers/auth/me";
+import * as googleCallback from "../../src/api-handlers/auth/google/callback.js";
+import * as googleConfig from "../../src/api-handlers/auth/google/config.js";
+import * as googleIndex from "../../src/api-handlers/auth/google/index.js";
+import * as login from "../../src/api-handlers/auth/login.js";
+import * as logout from "../../src/api-handlers/auth/logout.js";
+import * as me from "../../src/api-handlers/auth/me.js";
 
 type Handler = {
   GET?: (request: Request) => Response | Promise<Response>;

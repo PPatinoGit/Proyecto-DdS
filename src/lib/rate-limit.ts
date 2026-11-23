@@ -12,7 +12,7 @@
   fixed-window limiter and keeps the implementation predictable.
 */
 
-import { db } from "./db";
+import { db } from "./db.js";
 
 export type RateLimitResult = {
   allowed: boolean;

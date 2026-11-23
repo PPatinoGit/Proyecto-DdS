@@ -2,8 +2,8 @@
  Typed call to the (admin-only) weighted results endpoint.
 */
 
-import { apiFetch } from "./api";
-import type { ElectionResults } from "./types";
+import { apiFetch } from "./api.js";
+import type { ElectionResults } from "./types.js";
 
 /** GET /api/elections/results?electionId=… */
 export function fetchResults(electionId: number, signal?: AbortSignal): Promise<ElectionResults> {

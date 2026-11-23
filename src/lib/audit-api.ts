@@ -2,8 +2,8 @@
   Typed call to the admin audit endpoint.
 */
 
-import { apiFetch } from "./api";
-import type { AuditEvent } from "./types";
+import { apiFetch } from "./api.js";
+import type { AuditEvent } from "./types.js";
 
 export type AuditResponse = { events: AuditEvent[] };
 

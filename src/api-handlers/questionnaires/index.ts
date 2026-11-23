@@ -7,15 +7,15 @@
   always has an owner link.
 */
 
-import { readSessionUser } from "../../lib/session";
-import { recordAudit } from "../../lib/audit";
+import { readSessionUser } from "../../lib/session.js";
+import { recordAudit } from "../../lib/audit.js";
 import {
   createQuestionnaire,
   listOrganizationPeople,
   listQuestionnaires,
   QuestionnaireError,
-} from "../../lib/questionnaires";
-import { questionnaireInputSchema } from "../../lib/validation";
+} from "../../lib/questionnaires.js";
+import { questionnaireInputSchema } from "../../lib/validation.js";
 
 function json(data: unknown, status: number): Response {
   return new Response(JSON.stringify(data), {

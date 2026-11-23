@@ -4,9 +4,9 @@
  Like the other *-api modules, this only describes the HTTP API: no React.
 */
 
-import { apiFetch } from "./api";
-import type { Language } from "../i18n";
-import type { MailAttachment, MailConfig, MailSendSummary } from "./types";
+import { apiFetch } from "./api.js";
+import type { Language } from "../i18n/index.js";
+import type { MailAttachment, MailConfig, MailSendSummary } from "./types.js";
 
 export type SendEmailsInput = {
   electionId: number;

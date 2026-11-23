@@ -7,7 +7,7 @@
   function useful for questionnaires written in any interface language.
 */
 
-import type { CategoryKey } from "./types";
+import type { CategoryKey } from "./types.js";
 
 /** Canonical keys, in priority order: earlier categories win a tie. */
 export const CATEGORY_KEYS: readonly CategoryKey[] = [

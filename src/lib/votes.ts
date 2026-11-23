@@ -10,10 +10,10 @@
  defence if two requests arrive at the same time.
 */
 
-import { db } from "./db";
-import { findElectionById } from "./elections";
-import { listMotions } from "./motions";
-import { VotingError, windowFor } from "./voting";
+import { db } from "./db.js";
+import { findElectionById } from "./elections.js";
+import { listMotions } from "./motions.js";
+import { VotingError, windowFor } from "./voting.js";
 import type {
   Ballot,
   Election,
@@ -23,7 +23,7 @@ import type {
   ResultOption,
   VoteChoice,
   VoteReceipt,
-} from "./types";
+} from "./types.js";
 
 export type TokenContext = {
   token: string;

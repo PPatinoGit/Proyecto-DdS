@@ -10,7 +10,7 @@ import {
   MAX_ATTACHMENTS,
   MAX_EMAIL_MESSAGE,
   MAX_EMAIL_SUBJECT,
-} from "./email-limits";
+} from "./email-limits.js";
 
 /*
  Dates arrive from <input type="datetime-local"> as "YYYY-MM-DDTHH:mm", so they

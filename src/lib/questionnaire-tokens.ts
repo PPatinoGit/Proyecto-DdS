@@ -8,7 +8,7 @@
 */
 
 import { randomBytes } from "node:crypto";
-import { db } from "./db";
+import { db } from "./db.js";
 
 /** 24 random bytes → 32 URL-safe characters. */
 function newToken(): string {

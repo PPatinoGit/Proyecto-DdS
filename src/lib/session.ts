@@ -6,9 +6,9 @@
  handlers do not repeat the same five lines.
 */
 
-import { readSession } from "./auth";
-import { findUserById, toPublicUser } from "./users";
-import type { PublicUser } from "./types";
+import { readSession } from "./auth.js";
+import { findUserById, toPublicUser } from "./users.js";
+import type { PublicUser } from "./types.js";
 
 /** Returns the signed-in user, or null when the session is missing, expired or orphaned. */
 export function readSessionUser(request: Request): PublicUser | null {

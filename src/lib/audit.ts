@@ -9,13 +9,13 @@
   that already succeeded, but it is logged on the server so it can be found.
 */
 
-import { db } from "./db";
+import { db } from "./db.js";
 import type {
   AuditAction,
   AuditActorType,
   AuditEvent,
   AuditMetadata,
-} from "./types";
+} from "./types.js";
 
 export type AuditEventInput = {
   actorType: AuditActorType;

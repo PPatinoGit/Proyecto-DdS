@@ -3,12 +3,12 @@
   the only credential; no admin session cookie is involved.
 */
 
-import { apiFetch } from "./api";
+import { apiFetch } from "./api.js";
 import type {
   QuestionnaireAnswerInput,
   QuestionnaireDelegationInput,
   QuestionnaireView,
-} from "./types";
+} from "./types.js";
 
 export type QuestionnaireViewResponse = { view: QuestionnaireView };
 

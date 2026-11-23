@@ -1,4 +1,4 @@
-import * as vote from "../../src/api-handlers/vote/[token]";
+import * as vote from "../../src/api-handlers/vote/[token].js";
 
 type Handler = {
   GET?: (request: Request) => Response | Promise<Response>;

@@ -5,7 +5,7 @@
  the admin results all agree on what "open" means.
 */
 
-import type { Election, VoteWindow } from "./types";
+import type { Election, VoteWindow } from "./types.js";
 
 /** Machine-readable failures returned by the voting API. */
 export class VotingError extends Error {

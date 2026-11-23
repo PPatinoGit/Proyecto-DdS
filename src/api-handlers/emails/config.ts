@@ -5,8 +5,8 @@
  sender address and the dry-run flag leave the server: never the API key.
 */
 
-import { getMailConfig } from "../../lib/emails";
-import { readSessionUser } from "../../lib/session";
+import { getMailConfig } from "../../lib/emails.js";
+import { readSessionUser } from "../../lib/session.js";
 
 function json(data: unknown, status: number): Response {
   return new Response(JSON.stringify(data), {

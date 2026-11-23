@@ -6,9 +6,9 @@
  module: it depends on the libSQL client.
 */
 
-import { db } from "./db";
-import type { Voter, VoterImportSummary } from "./types";
-import type { VoterCsvRow } from "./csv";
+import { db } from "./db.js";
+import type { Voter, VoterImportSummary } from "./types.js";
+import type { VoterCsvRow } from "./csv.js";
 
 type VoterRow = {
   person_id: number;

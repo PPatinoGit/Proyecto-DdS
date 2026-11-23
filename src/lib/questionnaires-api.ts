@@ -2,13 +2,13 @@
   Typed calls to the admin questionnaire endpoints.
 */
 
-import { apiFetch } from "./api";
+import { apiFetch } from "./api.js";
 import type {
   OrganizationPerson,
   Questionnaire,
   QuestionnaireDetail,
   QuestionnaireInput,
-} from "./types";
+} from "./types.js";
 
 export type QuestionnaireListResponse = {
   questionnaires: Questionnaire[];

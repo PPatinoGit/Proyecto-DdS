@@ -4,8 +4,8 @@
  Like the other *-api modules, this only describes the HTTP API: no React.
 */
 
-import { apiFetch } from "./api";
-import type { Voter, VoterImportSummary } from "./types";
+import { apiFetch } from "./api.js";
+import type { Voter, VoterImportSummary } from "./types.js";
 
 export type VotersResponse = {
   election: { id: number; title: string };

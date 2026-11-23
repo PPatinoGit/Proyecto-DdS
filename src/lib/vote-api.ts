@@ -4,8 +4,8 @@
  No session cookie is needed: the token in the URL is the credential.
 */
 
-import { apiFetch } from "./api";
-import type { Ballot, VoteChoice, VoteReceipt } from "./types";
+import { apiFetch } from "./api.js";
+import type { Ballot, VoteChoice, VoteReceipt } from "./types.js";
 
 export function fetchBallot(token: string, signal?: AbortSignal): Promise<{ ballot: Ballot }> {
   return apiFetch<{ ballot: Ballot }>(`/api/vote/${encodeURIComponent(token)}`, { signal });

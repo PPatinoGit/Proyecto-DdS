@@ -13,15 +13,15 @@ import { z } from "zod";
 import {
   delegateQuestions,
   QuestionnaireError,
-} from "../../../lib/questionnaires";
-import { resolveQuestionnaireToken } from "../../../lib/questionnaire-tokens";
-import { recordAudit } from "../../../lib/audit";
+} from "../../../lib/questionnaires.js";
+import { resolveQuestionnaireToken } from "../../../lib/questionnaire-tokens.js";
+import { recordAudit } from "../../../lib/audit.js";
 import {
   RATE_LIMITS,
   rateLimitGuard,
   withRateLimitHeaders,
-} from "../../../lib/rate-limit";
-import { questionnaireDelegationSchema } from "../../../lib/validation";
+} from "../../../lib/rate-limit.js";
+import { questionnaireDelegationSchema } from "../../../lib/validation.js";
 
 const tokenSchema = z.string().regex(/^[A-Za-z0-9_-]{32}$/);
 

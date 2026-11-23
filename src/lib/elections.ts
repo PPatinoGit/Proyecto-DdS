@@ -5,9 +5,9 @@
  knows. Only api/ imports this module: it depends on the libSQL client.
 */
 
-import { db } from "./db";
-import type { Election, ElectionStatus } from "./types";
-import type { ElectionInputPayload } from "./validation";
+import { db } from "./db.js";
+import type { Election, ElectionStatus } from "./types.js";
+import type { ElectionInputPayload } from "./validation.js";
 
 type ElectionRow = {
   id: number;

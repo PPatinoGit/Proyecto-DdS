@@ -9,12 +9,12 @@
 */
 
 import { z } from "zod";
-import { castVote, getBallot } from "../../lib/votes";
-import { resolveBallotToken } from "../../lib/tokens";
-import { recordAudit } from "../../lib/audit";
-import { RATE_LIMITS, rateLimitGuard, withRateLimitHeaders } from "../../lib/rate-limit";
-import { VotingError } from "../../lib/voting";
-import { voteInputSchema } from "../../lib/validation";
+import { castVote, getBallot } from "../../lib/votes.js";
+import { resolveBallotToken } from "../../lib/tokens.js";
+import { recordAudit } from "../../lib/audit.js";
+import { RATE_LIMITS, rateLimitGuard, withRateLimitHeaders } from "../../lib/rate-limit.js";
+import { VotingError } from "../../lib/voting.js";
+import { voteInputSchema } from "../../lib/validation.js";
 
 const tokenSchema = z.string().regex(/^[A-Za-z0-9_-]{32}$/);
 

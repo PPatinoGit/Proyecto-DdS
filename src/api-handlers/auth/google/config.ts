@@ -3,7 +3,7 @@
   Tells the login page whether Google SSO is configured. No secrets are exposed.
 */
 
-import { getGoogleConfig } from "../../../lib/google-auth";
+import { getGoogleConfig } from "../../../lib/google-auth.js";
 
 function json(data: unknown, status: number): Response {
   return new Response(JSON.stringify(data), {

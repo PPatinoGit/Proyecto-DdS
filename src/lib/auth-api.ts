@@ -4,8 +4,8 @@
  That keeps it reusable and easy to test.
 */
 
-import { apiFetch } from "./api";
-import type { PublicUser } from "./types";
+import { apiFetch } from "./api.js";
+import type { PublicUser } from "./types.js";
 
 /** Shape returned by both /api/auth/login and /api/auth/me. */
 export type SessionResponse = { user: PublicUser };

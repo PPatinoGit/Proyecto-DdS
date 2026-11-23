@@ -9,11 +9,11 @@
 */
 
 import { z } from "zod";
-import { findUserByEmail, toPublicUser } from "../../lib/users";
-import { createSessionCookie, verifyPassword } from "../../lib/auth";
-import { recordAudit } from "../../lib/audit";
-import { RATE_LIMITS, rateLimitGuard, withRateLimitHeaders } from "../../lib/rate-limit";
-import { clientIp } from "../../lib/request";
+import { findUserByEmail, toPublicUser } from "../../lib/users.js";
+import { createSessionCookie, verifyPassword } from "../../lib/auth.js";
+import { recordAudit } from "../../lib/audit.js";
+import { RATE_LIMITS, rateLimitGuard, withRateLimitHeaders } from "../../lib/rate-limit.js";
+import { clientIp } from "../../lib/request.js";
 
 /* Anything that does not match this schema is rejected before touching the user list. */
 const bodySchema = z.object({

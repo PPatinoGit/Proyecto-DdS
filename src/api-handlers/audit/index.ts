@@ -6,8 +6,8 @@
 */
 
 import { z } from "zod";
-import { listAuditEvents } from "../../lib/audit";
-import { readSessionUser } from "../../lib/session";
+import { listAuditEvents } from "../../lib/audit.js";
+import { readSessionUser } from "../../lib/session.js";
 
 const limitSchema = z.coerce.number().int().min(1).max(200).default(50);
 

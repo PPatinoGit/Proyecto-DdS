@@ -6,8 +6,8 @@
  The caller injects the vote URL because the token lives on the server.
 */
 
-import { translate, type Language, type TranslationKey } from "../i18n";
-import { salutationFor, type Salutation } from "./gender";
+import { translate, type Language, type TranslationKey } from "../i18n/index.js";
+import { salutationFor, type Salutation } from "./gender.js";
 
 export type EmailRecipient = {
   name: string;

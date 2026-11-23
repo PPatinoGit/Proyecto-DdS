@@ -1,8 +1,8 @@
-import * as electionsIndex from "../../src/api-handlers/elections/index";
-import * as motions from "../../src/api-handlers/elections/motions";
-import * as results from "../../src/api-handlers/elections/results";
-import * as status from "../../src/api-handlers/elections/status";
-import * as voters from "../../src/api-handlers/elections/voters";
+import * as electionsIndex from "../../src/api-handlers/elections/index.js";
+import * as motions from "../../src/api-handlers/elections/motions.js";
+import * as results from "../../src/api-handlers/elections/results.js";
+import * as status from "../../src/api-handlers/elections/status.js";
+import * as voters from "../../src/api-handlers/elections/voters.js";
 
 type Handler = {
   GET?: (request: Request) => Response | Promise<Response>;

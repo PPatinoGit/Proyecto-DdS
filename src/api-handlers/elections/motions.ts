@@ -7,12 +7,12 @@
 */
 
 import { z } from "zod";
-import { findElectionById } from "../../lib/elections";
-import { hasVotes, listMotions, replaceMotions } from "../../lib/motions";
-import { recordAudit } from "../../lib/audit";
-import { readSessionUser } from "../../lib/session";
-import { VotingError } from "../../lib/voting";
-import { motionsInputSchema } from "../../lib/validation";
+import { findElectionById } from "../../lib/elections.js";
+import { hasVotes, listMotions, replaceMotions } from "../../lib/motions.js";
+import { recordAudit } from "../../lib/audit.js";
+import { readSessionUser } from "../../lib/session.js";
+import { VotingError } from "../../lib/voting.js";
+import { motionsInputSchema } from "../../lib/validation.js";
 
 const idSchema = z.coerce.number().int().positive();
 

@@ -4,7 +4,7 @@ Administrators are stored on a JSON file versioned on the repo, thats why this m
 // The atribute 'with { type: "json" }' is required to import JSON files in TypeScript 
 import usersJson from "../../data/users.json" with { type: "json" };
 
-import type { PublicUser } from "./types";
+import type { PublicUser } from "./types.js";
 
 export type AdminUser = {
   id: string;

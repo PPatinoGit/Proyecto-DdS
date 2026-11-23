@@ -7,7 +7,7 @@
  (and demoed) without an account. The response tells the UI it was simulated.
 */
 
-import type { MailConfig } from "./types";
+import type { MailConfig } from "./types.js";
 
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
 const REQUEST_TIMEOUT_MS = 15_000;
