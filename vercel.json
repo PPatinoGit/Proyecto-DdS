@@ -1,6 +1,6 @@
 {
   "functions": {
-    "api/emails/send.ts": { "maxDuration": 30 }
+    "api/[[...route]].ts": { "maxDuration": 30 }
   },
   "rewrites": [
     { "source": "/login", "destination": "/index.html" },
