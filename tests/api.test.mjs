@@ -18,13 +18,13 @@ import {
   seedQuestionnaire,
 } from "./helpers.mjs";
 
-const { POST: login } = await import("../api/auth/login.ts");
-const { POST: logout } = await import("../api/auth/logout.ts");
-const { POST: createElection } = await import("../api/elections/index.ts");
-const { GET: getAudit } = await import("../api/audit/index.ts");
-const { POST: castVote } = await import("../api/vote/[token].ts");
-const { POST: answerQuestion } = await import("../api/questionnaire/[token].ts");
-const { POST: delegateQuestions } = await import("../api/questionnaire/[token]/delegate.ts");
+const { POST: login } = await import("../src/api-handlers/auth/login.ts");
+const { POST: logout } = await import("../src/api-handlers/auth/logout.ts");
+const { POST: createElection } = await import("../src/api-handlers/elections/index.ts");
+const { GET: getAudit } = await import("../src/api-handlers/audit/index.ts");
+const { POST: castVote } = await import("../src/api-handlers/vote/[token].ts");
+const { POST: answerQuestion } = await import("../src/api-handlers/questionnaire/[token].ts");
+const { POST: delegateQuestions } = await import("../src/api-handlers/questionnaire/[token]/delegate.ts");
 
 /** POST with the demo administrator's signed cookie. */
 function adminPost(url, body) {
