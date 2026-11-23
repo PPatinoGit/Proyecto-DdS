@@ -6,8 +6,8 @@
 */
 
 import { z } from "zod";
-import { getQuestionnaireDetail, QuestionnaireError } from "../../src/lib/questionnaires";
-import { readSessionUser } from "../../src/lib/session";
+import { getQuestionnaireDetail, QuestionnaireError } from "../../../src/lib/questionnaires";
+import { readSessionUser } from "../../../src/lib/session";
 
 const idSchema = z.coerce.number().int().positive();
 

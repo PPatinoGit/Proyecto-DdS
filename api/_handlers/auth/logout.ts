@@ -4,9 +4,9 @@
    is read only to write a redacted audit row before the cookie is cleared.
 */
 
-import { clearSessionCookie } from "../../src/lib/auth";
-import { recordAudit } from "../../src/lib/audit";
-import { readSessionUser } from "../../src/lib/session";
+import { clearSessionCookie } from "../../../src/lib/auth";
+import { recordAudit } from "../../../src/lib/audit";
+import { readSessionUser } from "../../../src/lib/session";
 
 /*
   Exported as POST: Vercel routes by the export name, so a GET (which an

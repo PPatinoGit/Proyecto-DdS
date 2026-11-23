@@ -1,5 +1,5 @@
-import * as index from "../../api-handlers/questionnaires/index";
-import * as detail from "../../api-handlers/questionnaires/[id]";
+import * as index from "../_handlers/questionnaires/index";
+import * as detail from "../_handlers/questionnaires/[id]";
 
 type Handler = {
   GET?: (request: Request) => Response | Promise<Response>;

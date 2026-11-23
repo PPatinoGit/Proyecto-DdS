@@ -5,8 +5,8 @@
   cookie and redirects back into the app.
 */
 
-import { createSessionCookie } from "../../../src/lib/auth";
-import { recordAudit } from "../../../src/lib/audit";
+import { createSessionCookie } from "../../../../src/lib/auth";
+import { recordAudit } from "../../../../src/lib/audit";
 import {
   clearStateCookie,
   exchangeCodeForAccessToken,
@@ -14,10 +14,10 @@ import {
   getGoogleConfig,
   googleCallbackUrl,
   readState,
-} from "../../../src/lib/google-auth";
-import { RATE_LIMITS, rateLimitGuard } from "../../../src/lib/rate-limit";
-import { clientIp } from "../../../src/lib/request";
-import { findUserByEmail } from "../../../src/lib/users";
+} from "../../../../src/lib/google-auth";
+import { RATE_LIMITS, rateLimitGuard } from "../../../../src/lib/rate-limit";
+import { clientIp } from "../../../../src/lib/request";
+import { findUserByEmail } from "../../../../src/lib/users";
 
 function redirect(location: string, headers: Record<string, string> = {}): Response {
   return new Response(null, { status: 302, headers: { location, ...headers } });

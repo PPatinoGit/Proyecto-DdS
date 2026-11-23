@@ -7,11 +7,11 @@
 */
 
 import { z } from "zod";
-import { findElectionById } from "../../src/lib/elections";
-import { importVoters, listVoters } from "../../src/lib/voters";
-import { recordAudit } from "../../src/lib/audit";
-import { readSessionUser } from "../../src/lib/session";
-import { parseVoterCsv } from "../../src/lib/csv";
+import { findElectionById } from "../../../src/lib/elections";
+import { importVoters, listVoters } from "../../../src/lib/voters";
+import { recordAudit } from "../../../src/lib/audit";
+import { readSessionUser } from "../../../src/lib/session";
+import { parseVoterCsv } from "../../../src/lib/csv";
 
 const idSchema = z.coerce.number().int().positive();
 

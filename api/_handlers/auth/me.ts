@@ -4,8 +4,8 @@
  The frontend calls this once on load to restore the session. */
 
 
-import { readSession } from "../../src/lib/auth";
-import { findUserById, toPublicUser } from "../../src/lib/users";
+import { readSession } from "../../../src/lib/auth";
+import { findUserById, toPublicUser } from "../../../src/lib/users";
 
 function json(data: unknown, status: number): Response {
   return new Response(JSON.stringify(data), {

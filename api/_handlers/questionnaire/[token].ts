@@ -1,27 +1,23 @@
 /*
-  POST /api/questionnaire/<token>/delegate
+  GET  /api/questionnaire/<token>  read the questionnaire identified by the link
+  POST /api/questionnaire/<token>  answer one question (by its current owner)
 
-  Moves one or more questions from the token holder to another person, with a
-  single owner per question guaranteed by the assignment primary key. Returns
-  the delegate's link token so the UI can display it.
-
-  The caller's token is the rate-limit key; it is never stored. The new
-  delegate's token also stays out of the audit metadata.
+  There is no admin session here: the secret token is the credential. All texts
+  in the responses are machine-readable codes so the page can translate them
+  without calling a translation API. The token is the rate-limit key, while the
+  audit row stores the resolved person id instead of the secret.
 */
 
 import { z } from "zod";
 import {
-  delegateQuestions,
+  answerQuestion,
+  getQuestionnaireView,
   QuestionnaireError,
 } from "../../../src/lib/questionnaires";
 import { resolveQuestionnaireToken } from "../../../src/lib/questionnaire-tokens";
 import { recordAudit } from "../../../src/lib/audit";
-import {
-  RATE_LIMITS,
-  rateLimitGuard,
-  withRateLimitHeaders,
-} from "../../../src/lib/rate-limit";
-import { questionnaireDelegationSchema } from "../../../src/lib/validation";
+import { RATE_LIMITS, rateLimitGuard, withRateLimitHeaders } from "../../../src/lib/rate-limit";
+import { questionnaireAnswerSchema } from "../../../src/lib/validation";
 
 const tokenSchema = z.string().regex(/^[A-Za-z0-9_-]{32}$/);
 
@@ -32,10 +28,10 @@ function json(data: unknown, status: number): Response {
   });
 }
 
-/** The questionnaire token is the second-to-last path segment. */
+/** The last path segment of /api/questionnaire/<token>. */
 function tokenFrom(request: Request): string | null {
   const parts = new URL(request.url).pathname.split("/").filter(Boolean);
-  const raw = parts.at(-2);
+  const raw = parts.at(-1);
   if (raw === undefined) return null;
 
   try {
@@ -53,12 +49,25 @@ function questionnaireErrorResponse(error: QuestionnaireError): Response {
   return json({ error: error.code }, 400);
 }
 
+export async function GET(request: Request): Promise<Response> {
+  const token = tokenSchema.safeParse(tokenFrom(request));
+  if (!token.success) return json({ error: "invalid_token" }, 404);
+
+  try {
+    return json({ view: await getQuestionnaireView(token.data) }, 200);
+  } catch (error) {
+    if (error instanceof QuestionnaireError) return questionnaireErrorResponse(error);
+    console.error("Could not read the questionnaire", error);
+    return json({ error: "database_error" }, 500);
+  }
+}
+
 export async function POST(request: Request): Promise<Response> {
   const token = tokenSchema.safeParse(tokenFrom(request));
   if (!token.success) return json({ error: "invalid_token" }, 404);
 
   const guard = await rateLimitGuard(
-    "questionnaire:delegate",
+    "questionnaire:answer",
     token.data,
     RATE_LIMITS.questionnaire.limit,
     RATE_LIMITS.questionnaire.windowMs,
@@ -76,26 +85,26 @@ export async function POST(request: Request): Promise<Response> {
     return withLimits(json({ error: "invalid_json" }, 400));
   }
 
-  const parsed = questionnaireDelegationSchema.safeParse(body);
+  const parsed = questionnaireAnswerSchema.safeParse(body);
   if (!parsed.success) return withLimits(json({ error: "invalid_input" }, 400));
 
   try {
     const holder = await resolveQuestionnaireToken(token.data);
-    const delegateToken = await delegateQuestions(token.data, parsed.data);
+    await answerQuestion(token.data, parsed.data);
 
     await recordAudit({
       actorType: "recipient",
       actorId: holder?.personId ?? null,
-      action: "questionnaire.delegate",
+      action: "questionnaire.answer",
       targetType: "questionnaire",
       targetId: holder?.questionnaireId ?? null,
-      metadata: { questionCount: parsed.data.questionIds.length },
+      metadata: { questionId: parsed.data.questionId },
     });
 
-    return withLimits(json({ delegateToken }, 200));
+    return withLimits(json({ ok: true }, 200));
   } catch (error) {
     if (error instanceof QuestionnaireError) return withLimits(questionnaireErrorResponse(error));
-    console.error("Could not delegate questions", error);
+    console.error("Could not save the answer", error);
     return withLimits(json({ error: "database_error" }, 500));
   }
 }
